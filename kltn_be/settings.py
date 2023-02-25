@@ -11,6 +11,9 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
 from pathlib import Path
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -85,9 +88,10 @@ WSGI_APPLICATION = 'kltn_be.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'djongo',
-        'NAME': 'kltn_db',
+        'NAME': os.environ.get('KLTN_MONGODB_NAME'),
+        "ENFORCE_SCHEMA": False,
         'CLIENT': {
-           'host': 'your-db-host',
+           'host': os.environ.get('KLTN_MONGODB_CONNECTION'),
         }
     }
 }
