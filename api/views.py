@@ -4,6 +4,9 @@ from rest_framework.response import Response
 from rest_framework import viewsets, mixins
 from .serializers import *
 from rest_framework.decorators import action
+from pymongo import *
+client = MongoClient('connection_string')
+db = client['db_name']
 
 
 class ProductView(viewsets.GenericViewSet, 
