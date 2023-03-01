@@ -3,8 +3,8 @@ import numpy as np
 # import tensorflow as tf
 from tensorflow import keras
 # from sklearn.model_selection import train_test_split
-# from sklearn.metrics.pairwise import cosine_similarity
-# from sklearn.preprocessing import normalize
+from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.preprocessing import normalize
 import PIL
 # from matplotlib import image as mpimg
 # import matplotlib as mpl
