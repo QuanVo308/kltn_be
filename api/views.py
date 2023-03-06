@@ -12,11 +12,12 @@ from django.core.files import File
 import requests
 from io import BytesIO
 
-class ProductView(viewsets.GenericViewSet, 
-                  mixins.CreateModelMixin, 
-                  mixins.RetrieveModelMixin, 
-                  mixins.UpdateModelMixin, 
-                #   mixins.DestroyModelMixin,
+
+class ProductView(viewsets.GenericViewSet,
+                  mixins.CreateModelMixin,
+                  mixins.RetrieveModelMixin,
+                  mixins.UpdateModelMixin,
+                  #   mixins.DestroyModelMixin,
                   mixins.ListModelMixin):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
@@ -24,26 +25,31 @@ class ProductView(viewsets.GenericViewSet,
 
     @action(detail=False, methods=['get', 'post'])
     def test(self, request):
-        products = Product.objects.all()
-        for product in products:
-            # print(f'calculating image {product.name}')
-            # image = PIL.Image.open(pathlib.Path(product.image_path))
-            # image = image.resize(size = (200,245))
-            # image_arr = np.asarray(image)/255.
-            # embedding_vector = m.predict(np.stack([image_arr]), verbose=0)
-            # product.embedding_vector = embedding_vector.tolist()
-            # product.save()
+        # Product.objects.all()
+        # p = Product.objects.filter(id = 324)[0]
+        # craw_lazada_image(p)
 
-            print(np.array(product.embedding_vector).shape)
-        
+        ps = []
+        for p in Product.objects.all():
+            if len(p.images.all()) == 0:
+                print(p.id)
+        #         ps.append(p)
+        # craw_lazada_image_multithread(ps)
+
         return Response('test')
+
+    @action(detail=False, methods=['delete'])
+    def delete_all_prodcut(self, request):
+        Product.objects.all().delete()
+        return Response('delete all product')
 
     @action(detail=False, methods=['get', 'post'])
     def get_similar_image(self, request):
-        product_anchor = Product.objects.filter(name = request.GET['name'])[0]
+        product_anchor = ProductTest.objects.filter(
+            name=request.GET['name'])[0]
         print(product_anchor)
         all_distance = []
-        products = Product.objects.all()
+        products = ProductTest.objects.all()
         for product in products:
             print(f'calculating {product.name}')
             if product == product_anchor:
@@ -52,48 +58,83 @@ class ProductView(viewsets.GenericViewSet,
             anchor_embedding = np.array(product_anchor.embedding_vector)
             test_embedding = np.array(product.embedding_vector)
 
-            if anchor_embedding.shape != (1,128) or test_embedding.shape != (1,128):
-                return Response(product.name)
-            
+            # if anchor_embedding.shape != (1,MODEL_OUTPUT_LENGTH) or test_embedding.shape != (1,MODEL_OUTPUT_LENGTH):
+            #     return Response(product.name)
+
             anchor_embedding = normalize(anchor_embedding, axis=1)
             test_embedding = normalize(test_embedding, axis=1)
             distance = cosine_similarity(anchor_embedding, test_embedding)
-            all_distance.append({'name': product.name, 'distance': distance[0][0]})
+            all_distance.append(
+                {'name': product.name, 'distance': distance[0][0]})
 
-        all_distance = sorted(all_distance, key=lambda d: d['distance'], reverse=True) 
-        return Response(all_distance)
+        all_distance = sorted(
+            all_distance, key=lambda d: d['distance'], reverse=True)
+        name_order = []
+        for i in all_distance:
+            print(i['name'])
+            name_order.append(i['name'])
+        return Response({"order_list": name_order, "detail": all_distance})
 
     @action(detail=False, methods=['get', 'post'])
-    def add_data(self, request):
-        
-        t = request.data
-        product = Product()
-        product.image_path = t['image_path']
-        product.name = t['name']
-        # product.embedding_vector = np.array([[1,2,3,4,5]]).tolist()
-        product.save()
+    def add_data_test(self, request):
+        base_dir = pathlib.Path("D:/Downloads/custom_test_dataset/")
 
+        for path in base_dir.glob("*"):
+            print(str(path))
+            print(path.stem)
+            p = ProductTest.objects.filter(image_path=str(path))
+            p = ProductTest() if len(p) == 0 else p[0]
+            p.name = path.stem
+            p.image_path = str(path)
+            p.save()
         return Response('ok')
 
     @action(detail=False, methods=['get'])
     def image_exaction(self, request):
-        
+
         # response = requests.get("https://cdn.britannica.com/45/5645-050-B9EC0205/head-treasure-flower-disk-flowers-inflorescence-ray.jpg")
         # t = PIL.Image.open(BytesIO(response.content))
 
         print('loading model')
-        m = keras.models.load_model('D:\QuanVo\KLTN\models\output_kaggle tllds 245x200 out128 float ac66/checkpoint')
+        m = load_models()
 
-        products = Product.objects.all()
+        products = ProductTest.objects.all()
         for product in products:
             print(f'calculating image {product.name}')
             image = PIL.Image.open(pathlib.Path(product.image_path))
-            image = image.resize(size = (200,245))
+            image = image.resize(size=(200, 245))
             image_arr = np.asarray(image)/255.
             embedding_vector = m.predict(np.stack([image_arr]), verbose=0)
             product.embedding_vector = embedding_vector.tolist()
             product.save()
 
+        return Response("ok")
+
+    @action(detail=False, methods=['get'])
+    def image_exaction_update(self, request):
+
+        # response = requests.get("https://cdn.britannica.com/45/5645-050-B9EC0205/head-treasure-flower-disk-flowers-inflorescence-ray.jpg")
+        # t = PIL.Image.open(BytesIO(response.content))
+
+        print('loading model')
+        m = load_models()
+
+        products = ProductTest.objects.all()
+        for product in products:
+            if len(product.embedding_vector) == 1:
+                continue
+            print(f'calculating image {product.name}')
+            image = PIL.Image.open(pathlib.Path(product.image_path))
+            image = image.resize(size=(200, 245))
+            image_arr = np.asarray(image)/255.
+            embedding_vector = m.predict(np.stack([image_arr]), verbose=0)
+            product.embedding_vector = embedding_vector.tolist()
+            product.save()
 
         return Response("ok")
 
+    @action(detail=False, methods=['get'], url_path="crawl_all")
+    def crawl_all_data(self, request):
+        craw_lazada_all()
+
+        return Response("crawl data done")

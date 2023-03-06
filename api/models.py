@@ -6,20 +6,66 @@ from rest_framework import serializers
 # grid_fs_storage = GridFSStorage(collection='myfiles', base_url=''.join(["localhost:8000", 'myfiles/']))
 
 # Create your models here.
-class Product(models.Model):
-    name = models.CharField(max_length=100, null = True)
-    image_url = models.CharField(max_length=250, null= True)
-    image_path = models.CharField(max_length=100, null= True)
-    embedding_vector = models.JSONField(null=True)
+class ProductTest(models.Model):
+    name = models.CharField(max_length=250, null = True, default={})
+    image_url = models.CharField(max_length=250, null= True, default={})
+    image_path = models.CharField(max_length=250, null= True, default={})
+    embedding_vector = models.JSONField(null=True, default={})
     updated_at = models.DateTimeField(auto_now=True,
                                       help_text='Thời gian cập nhật')
     created_at = models.DateTimeField(auto_now_add=True,
                                       help_text='Thời gian tạo')
-    # image = models.ImageField(upload_to='testImage', null = True, storage=grid_fs_storage)
 
     def __str__(self):
         return self.name
 
-    # def delete(self):
-    #     t = grid_fs_storage.delete(str(self.image))
-    #     super(Product, self).delete()
+class Product(models.Model):
+    name = models.CharField(max_length=250, null = True, default="")
+    price = models.CharField(max_length=250, null = True, default="")
+    link = models.CharField(max_length=250, null = True, default="")
+    updated_at = models.DateTimeField(auto_now=True,
+                                      help_text='Thời gian cập nhật')
+    created_at = models.DateTimeField(auto_now_add=True,
+                                      help_text='Thời gian tạo')
+
+    def __str__(self):
+        return self.name
+    
+    # def delete(self, *args, **kwargs):
+    #     # print(self.images)
+    #     # for image in self.images.all():
+    #     #     image.delete()
+    #     super(Product, self).delete(self, *args, **kwargs)
+
+
+class Image(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE,
+                                related_name='images', null = False)
+    link = models.CharField(max_length=250, null = True, default={})
+    updated_at = models.DateTimeField(auto_now=True,
+                                      help_text='Thời gian cập nhật')
+    created_at = models.DateTimeField(auto_now_add=True,
+                                      help_text='Thời gian tạo')
+
+    
+    def __str__(self):
+        return f"Image of product {self.product.id}"
+    
+class SourceData(models.Model):
+    platform = models.CharField(max_length=250, null = True, default={})
+    link = models.CharField(max_length=250, null = True, default={})
+    describe = models.CharField(max_length=250, null = True, default={})
+    min_page = models.IntegerField(null = True)
+    max_page = models.IntegerField(null = True)
+    multi_page = models.BooleanField(default=False)
+    updated_at = models.DateTimeField(auto_now=True,
+                                      help_text='Thời gian cập nhật')
+    created_at = models.DateTimeField(auto_now_add=True,
+                                      help_text='Thời gian tạo')
+
+
+    def __str__(self):
+        return f"Image of product {self.product.id}"
+
+
+
