@@ -21,3 +21,12 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductTest
         fields = '__all__'
+
+class SourceDataSerializer(serializers.ModelSerializer):
+    min_page = serializers.IntegerField(required=False)
+    max_page = serializers.IntegerField(required=False)
+    multi_page = serializers.BooleanField(required=False)
+
+    class Meta:
+        model = SourceData
+        fields = '__all__'

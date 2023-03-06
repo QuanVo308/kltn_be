@@ -134,9 +134,3 @@
 # #     print(f"{p_c/i*100:.3f}% {p_c}/{i} cosine")
 #     # print("\n")
 
-# print('check')
-
-
-t = [{'1':1},{'1':3},{'1':2}]
-t = sorted(t, key=lambda d: d['1'])
-print(t)

@@ -54,8 +54,8 @@ class Image(models.Model):
 class SourceData(models.Model):
     platform = models.CharField(max_length=250, null = True, default={})
     link = models.CharField(max_length=250, null = True, default={})
-    describe = models.CharField(max_length=250, null = True, default={})
-    min_page = models.IntegerField(null = True)
+    description = models.CharField(max_length=250, null = True, default={})
+    min_page = models.IntegerField(null = True, default=1)
     max_page = models.IntegerField(null = True)
     multi_page = models.BooleanField(default=False)
     updated_at = models.DateTimeField(auto_now=True,

@@ -16,7 +16,7 @@ import pandas as pd
 import os
 
 # TRAINNED_MODEL = keras.models.load_model('D:\QuanVo\KLTN\models\output_kaggle tllds 245x200 out128 float ac66/checkpoint')
-THREAD_NUMBER = os.cpu_count()
+THREAD_NUMBER = os.cpu_count() -1
 MODEL_OUTPUT_LENGTH = 130
 
 
@@ -40,14 +40,18 @@ def load_models():
 
 def craw_lazada_all():
     sources = SourceData.objects.filter(platform='Lazada')
-
+    # driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
+    driver = webdriver.Chrome(
+        "D:\Downloads\chromedriver_win32\chromedriver.exe")
+    
     for source in sources:
         if source.multi_page == True:
             for page in range(source.min_page, source.max_page+1):
-                craw_lazada_page(f"{source.link}{page}")
+                print(f"{source.link}{page}")
+                craw_lazada_page(f"{source.link}{page}", driver)
         else:
             craw_lazada_page(source.link)
-
+    driver.quit()
 
 def craw_lazada_page_thread(source, thread_num):
     for page in range(source.min_page, source.max_page+1):
@@ -56,16 +60,12 @@ def craw_lazada_page_thread(source, thread_num):
             craw_lazada_page(f"{source.link}{page}")
 
 
-def craw_lazada_page(link):
-    driver = webdriver.Chrome(
-        "D:\Downloads\chromedriver_win32\chromedriver.exe")
-    # driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
+def craw_lazada_page(link, driver):
+    
     product_list = []
-
     driver.get(link)
     content = driver.page_source
-    driver.quit()
-
+    
     soup = BeautifulSoup(content, "html.parser")
 
     for a in soup.find_all('div', attrs={"class": "qmXQo"}):
@@ -74,9 +74,9 @@ def craw_lazada_page(link):
         price = a.find('span', attrs={"class": "ooOxS"})
 
         try:
-            (product_info.getText())  # name
-            (product_info['href'])  # product link
-            (price.text)  # price
+            product_info.getText()  # name
+            product_info['href']  # product link
+            price.text  # price
 
             products = Product.objects.filter(
                 link=f"https:{product_info['href']}")
@@ -116,7 +116,7 @@ def craw_lazada_image_multithread(product_list):
 def craw_lazada_image_thread(product_list, thread_num):
     driver = webdriver.Chrome(
         "D:\Downloads\chromedriver_win32\chromedriver.exe")
-
+    # driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
     l = len(product_list)
     for i in range(l):
         if i % THREAD_NUMBER == thread_num:
