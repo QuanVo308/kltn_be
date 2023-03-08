@@ -6,7 +6,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
-
+from selenium.webdriver import ActionChains
 
 
 # Initialize the webdriver
@@ -14,22 +14,19 @@ driver = webdriver.Chrome(
         "D:\Downloads\chromedriver_win32\chromedriver.exe")
 # driver.maximize_window()
 # Navigate to the Lazada Vietnam website
-driver.get("https://www.lazada.vn/dien-thoai-di-dong/?page=1")
+driver.get("https://www.lazada.vn/products/dien-thoai-xiaomi-qin-f21-pro-moi-100-nguyen-hop-cai-san-tieng-viet-ch-play-day-du-i2197306887-s10458996501.html")
 
-# Wait for the search bar to be present and interactable
-# search_bar = WebDriverWait(driver, 1).until(
-#     EC.element_to_be_clickable((By.XPATH, '//input[@id="q"]'))
-# )
+actions = ActionChains(driver)
 
-next_page = driver.find_element("class", "ant-pagination-next")
+slider = driver.find_element("class", "nc_iconfont btn_slide")
 
-search_term = "lazada"
-
+# search_term = "lazada"
+actions.move_to_element(slider).click_and_hold().move_by_offset(200, 0).release().perform()
 # Enter a search term
 # next_page.send_keys(search_term)
 # next_page.submit()
-next_page.click()
-time.sleep(5)
+# next_page.click()
+time.sleep(10)
 
 # suggestion_list = driver.find_element(By.CLASS_NAME, 'suggest-list--3Tm8')
 

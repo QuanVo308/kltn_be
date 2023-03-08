@@ -23,6 +23,7 @@ class Product(models.Model):
     name = models.CharField(max_length=250, null = True, default="")
     price = models.CharField(max_length=250, null = True, default="")
     link = models.CharField(max_length=250, null = True, default="")
+    key_words = models.JSONField(null=True, default=[])
     updated_at = models.DateTimeField(auto_now=True,
                                       help_text='Thời gian cập nhật')
     created_at = models.DateTimeField(auto_now_add=True,
@@ -58,6 +59,7 @@ class SourceData(models.Model):
     min_page = models.IntegerField(null = True, default=1)
     max_page = models.IntegerField(null = True)
     multi_page = models.BooleanField(default=False)
+    key_words = models.JSONField(null=True, default=[])
     updated_at = models.DateTimeField(auto_now=True,
                                       help_text='Thời gian cập nhật')
     created_at = models.DateTimeField(auto_now_add=True,

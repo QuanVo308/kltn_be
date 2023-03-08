@@ -26,14 +26,18 @@ class ProductView(viewsets.GenericViewSet,
     @action(detail=False, methods=['get', 'post'])
     def test(self, request):
         # Product.objects.all()
-        # p = Product.objects.filter(id = 324)[0]
+        # p = Product.objects.filter(id = 1797)[0]
         # craw_lazada_image(p)
-
-        ps = []
+        # print(p.updated_at)
+        # t = timezone.now() - p.updated_at
+        # print(t)
+        # print(t.days)
+        # ps = products_have_no_image()
         for p in Product.objects.all():
-            if len(p.images.all()) == 0:
-                print(p.id)
-        #         ps.append(p)
+            # t = timezone.now() - p.updated_at
+            print(check_update_expire(p))
+            # if t.days > 1:
+            #     print(p.id, t.days)
         # craw_lazada_image_multithread(ps)
 
         return Response('test')
@@ -77,6 +81,8 @@ class ProductView(viewsets.GenericViewSet,
 
     @action(detail=False, methods=['get', 'post'])
     def add_data_source(self, request):
+        request.data._mutable = True
+        request.data["key_words"] = json.loads(request.data["key_words"])
         serializer = SourceDataSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -128,9 +134,11 @@ class ProductView(viewsets.GenericViewSet,
 
     @action(detail=False, methods=['get'], url_path="crawl_all")
     def crawl_all_data(self, request):
+        start = timezone.now()
         craw_lazada_all()
-
-        return Response("crawl data done")
+        end = timezone.now()
+        print(end - start)
+        return Response(end - start)
 
 
 class ProductTestView(viewsets.GenericViewSet,

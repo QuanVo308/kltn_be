@@ -26,7 +26,14 @@ class SourceDataSerializer(serializers.ModelSerializer):
     min_page = serializers.IntegerField(required=False)
     max_page = serializers.IntegerField(required=False)
     multi_page = serializers.BooleanField(required=False)
-
+    key_words = serializers.ListField(required=False)
+    
     class Meta:
         model = SourceData
         fields = '__all__'
+    
+    def create(self, validated_data):
+        
+        validated_data['key_words'] = validated_data['key_words'][0]
+        source = SourceData.objects.create(**validated_data)
+        return source
