@@ -20,13 +20,13 @@ from django.utils import timezone
 import json
 
 # TRAINNED_MODEL = keras.models.load_model('D:\QuanVo\KLTN\models\output_kaggle tllds 245x200 out128 float ac66/checkpoint')
-THREAD_NUMBER_IMAGE = 1
+THREAD_NUMBER_IMAGE = 3
 THREAD_NUMBER_LINK_SOURCE = math.ceil(os.cpu_count()/2.0)
 MODEL_OUTPUT_LENGTH = 130
 EXPIRE_INFO_DAYS = 3
 
 otp = webdriver.ChromeOptions()
-# otp.add_argument('--headless')
+otp.add_argument('--headless')
 otp.add_argument("--disable-extensions")
 otp.add_argument("--disable-logging")
 otp.add_argument("--log-level=3")
@@ -66,6 +66,7 @@ def check_update_expire(instance):
 
 
 def load_models():
+    # return TRAINNED_MODEL
     return keras.models.load_model('C:/Users/Quan/Documents/Temp/models/resnet18 64x64 output 150 margin1 acc74/checkpoint')
 
 
@@ -122,11 +123,10 @@ def craw_lazada_page(link, driver, key_words):
     soup = BeautifulSoup(content, "html.parser")
 
     for a in soup.find_all('div', attrs={"class": "qmXQo"}):
-        product_info = a.find('div', attrs={"class": "RfADt"}).find(
-            'a', attrs={'age': '0'},  href=True)
-        price = a.find('span', attrs={"class": "ooOxS"})
-
         try:
+            product_info = a.find('div', attrs={"class": "RfADt"}).find(
+            'a', attrs={'age': '0'},  href=True)
+            price = a.find('span', attrs={"class": "ooOxS"})
             product_info.getText()  # name
             product_info['href']  # product link
             price.text  # price
@@ -205,13 +205,3 @@ def craw_lazada_image(product, driver):
         except Exception as e:
             print("craw image product error", e)
             pass
-
-
-def craw_lazada_image_empty():
-    product_list = []
-
-    for p in Product.objects.all():
-        if len(p.images.all()) == 0:
-            product_list.append(p)
-
-    craw_lazada_image_multithread(product_list)

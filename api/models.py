@@ -43,6 +43,7 @@ class Image(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE,
                                 related_name='images', null = False)
     link = models.CharField(max_length=250, null = True, default={})
+    embedding_vector = models.JSONField(null=True, default=[])
     updated_at = models.DateTimeField(auto_now=True,
                                       help_text='Thời gian cập nhật')
     created_at = models.DateTimeField(auto_now_add=True,

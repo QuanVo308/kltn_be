@@ -25,21 +25,18 @@ class ProductView(viewsets.GenericViewSet,
 
     @action(detail=False, methods=['get', 'post'])
     def test(self, request):
-        # Product.objects.all()
-        # p = Product.objects.filter(id = 1797)[0]
-        # craw_lazada_image(p)
-        # print(p.updated_at)
-        # t = timezone.now() - p.updated_at
-        # print(t)
-        # print(t.days)
-        # ps = products_have_no_image()
-        for p in Product.objects.all():
-            # t = timezone.now() - p.updated_at
-            print(check_update_expire(p))
-            # if t.days > 1:
-            #     print(p.id, t.days)
-        # craw_lazada_image_multithread(ps)
-
+        response = requests.get(request.data['link'])
+        # print(f'dowlonaded image {image_instance.product.name}')
+        image = PIL.Image.open(BytesIO(response.content))
+        images = image.convert('RGB')
+        image = image.resize(size=(200, 245))
+        images = images.resize(size=(200, 245))
+        image_arr = np.asarray(image)/255.
+        print(image_arr.shape)
+        print((np.asarray(images)/255.).shape)
+        print(np.asarray(image)/255.)
+        print('\n\n')
+        print(np.asarray(images)/255.)
         return Response('test')
 
     @action(detail=False, methods=['delete'])
@@ -96,41 +93,63 @@ class ProductView(viewsets.GenericViewSet,
 
         print('loading model')
         m = load_models()
+        list_err = []
+        images = Image.objects.all()
+        for image_instance in images:
+            try:
+                # print(f'calculating image {image_instance.product.name}')
+                response = requests.get(image_instance.link)
+                # print(f'dowlonaded image {image_instance.product.name}')
+                image = PIL.Image.open(BytesIO(response.content))
+                image = image.convert('RGB')
+                image = image.resize(size=(200, 245))
+                image_arr = np.asarray(image)/255.
+                embedding_vector = m.predict(np.stack([image_arr]), verbose=0)
+                image_instance.embedding_vector = embedding_vector.tolist()
+                image_instance.save()
+                # print('\n')
+            except Exception as e:
+                list_err.append(image_instance.id)
+                print(f'{image_instance.id}')
+                print(e)
 
-        products = ProductTest.objects.all()
-        for product in products:
-            print(f'calculating image {product.name}')
-            image = PIL.Image.open(pathlib.Path(product.image_path))
-            image = image.resize(size=(200, 245))
-            image_arr = np.asarray(image)/255.
-            embedding_vector = m.predict(np.stack([image_arr]), verbose=0)
-            product.embedding_vector = embedding_vector.tolist()
-            product.save()
-
-        return Response("ok")
+        return Response(list_err)
 
     @action(detail=False, methods=['get'])
     def image_exaction_update(self, request):
 
-        # response = requests.get("https://cdn.britannica.com/45/5645-050-B9EC0205/head-treasure-flower-disk-flowers-inflorescence-ray.jpg")
-        # t = PIL.Image.open(BytesIO(response.content))
-
         print('loading model')
         m = load_models()
+        list_err = []
+        images = Image.objects.all()
+        for image_instance in images:
+            try: 
+                if len(image_instance.embedding_vector) == 1:
+                    continue
+            except:
+                pass
+            try:
+                
+                response = requests.get(image_instance.link)
+                # print(f'dowlonaded image {image_instance.product.name}')
+                image = PIL.Image.open(BytesIO(response.content))
+                image = image.convert('RGB')
+                image = image.resize(size=(200, 245))
+                image_arr = np.asarray(image)/255.
+                embedding_vector = m.predict(np.stack([image_arr]), verbose=0)
+                image_instance.embedding_vector = embedding_vector.tolist()
+                image_instance.save()
+                # print('\n')
+            except Exception as e:
+                list_err.append(image_instance.id)
+                print(f'{image_instance.id}')
+                print(e)
 
-        products = ProductTest.objects.all()
-        for product in products:
-            if len(product.embedding_vector) == 1:
-                continue
-            print(f'calculating image {product.name}')
-            image = PIL.Image.open(pathlib.Path(product.image_path))
-            image = image.resize(size=(200, 245))
-            image_arr = np.asarray(image)/255.
-            embedding_vector = m.predict(np.stack([image_arr]), verbose=0)
-            product.embedding_vector = embedding_vector.tolist()
-            product.save()
+        with open("example2.txt", "w", encoding="utf-8") as f:
+            for i in list_err:
+                f.writelines(f"{i} \n")
 
-        return Response("ok")
+        return Response(list_err)
 
     @action(detail=False, methods=['get'], url_path="crawl_all")
     def crawl_all_data(self, request):
@@ -139,6 +158,12 @@ class ProductView(viewsets.GenericViewSet,
         end = timezone.now()
         print(end - start)
         return Response(end - start)
+    
+    @action(detail=False, methods=['get'])
+    def update_fail_pruduct(self, request):
+        products = products_have_no_image
+        craw_lazada_image_multithread(products)
+        return Response("updated product have no image")
 
 
 class ProductTestView(viewsets.GenericViewSet,
