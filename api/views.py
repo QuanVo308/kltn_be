@@ -154,7 +154,8 @@ class ProductView(viewsets.GenericViewSet,
     @action(detail=False, methods=['get'], url_path="crawl_all")
     def crawl_all_data(self, request):
         start = timezone.now()
-        craw_lazada_all()
+        # craw_lazada_all()
+        craw_shopee_all()
         end = timezone.now()
         print(end - start)
         return Response(end - start)
