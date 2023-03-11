@@ -233,10 +233,17 @@ def crawl_shopee_page_multithread(sources, thread_num):
 
 def craw_shopee_image(product, driver):
     driver.get(product.link)
-    image_menu = WebDriverWait(driver, 10).until(
-        EC.element_to_be_clickable((By.CSS_SELECTOR, ".MZ9yDd div")))
-    image_menu.click()
+    try_times = 0
 
+    while try_times < 10:
+        try:
+            image_menu = WebDriverWait(driver, 1).until(
+                EC.element_to_be_clickable((By.CSS_SELECTOR, ".MZ9yDd div")))
+            image_menu.click()
+        except Exception as e:
+            # print(e)
+            try_times += 1
+    
     try_times = 0
     while try_times < 10:
         try:
