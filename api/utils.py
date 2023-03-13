@@ -337,7 +337,7 @@ def craw_shopee_all():
     while try_time >= 0:
         try_time -= 1
 
-        sources = SourceData.objects.filter(platform='Shopee', crawled=False)
+        sources = SourceData.objects.filter(platform='Shopee', crawled__in=[False])
         threads = []
         for thread_num in range(0, THREAD_NUMBER_LINK_SOURCE):
             threads.append(PropagatingThread(
@@ -347,9 +347,9 @@ def craw_shopee_all():
         for thread in threads:
             thread.join()
 
-        sources = SourceData.objects.filter(platform='Shopee', crawled=False)
-        if len(sources) == 0:
-            try_time = -1
+        sources = SourceData.objects.filter(platform='Shopee', crawled__in=[False])
+
+
 
 
 def crawl_shopee_page_multithread(sources, thread_num):

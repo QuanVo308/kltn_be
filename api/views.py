@@ -25,9 +25,10 @@ class ProductView(viewsets.GenericViewSet,
 
     @action(detail=False, methods=['get', 'post'])
     def test(self, request):
-        print((unquote(request.data['link'])).split('?')[0])
-        ps = Product.objects.filter(link = (unquote(request.data['link'])).split('?')[0])
-        print(ps)
+        sources = SourceData.objects.filter(platform='Shopee', crawled__in=[False])
+        # sources = sources.filter(platform='Shopee', crawled=False)
+        
+        print(len(sources))
         return Response('test')
 
     @action(detail=False, methods=['delete'])
