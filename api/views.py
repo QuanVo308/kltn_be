@@ -25,23 +25,29 @@ class ProductView(viewsets.GenericViewSet,
 
     @action(detail=False, methods=['get', 'post'])
     def test(self, request):
-        response = requests.get(request.data['link'])
-        # print(f'dowlonaded image {image_instance.product.name}')
-        image = PIL.Image.open(BytesIO(response.content))
-        images = image.convert('RGB')
-        image = image.resize(size=(200, 245))
-        images = images.resize(size=(200, 245))
-        image_arr = np.asarray(image)/255.
-        print(image_arr.shape)
-        print((np.asarray(images)/255.).shape)
-        print(np.asarray(image)/255.)
-        print('\n\n')
-        print(np.asarray(images)/255.)
+        print((unquote(request.data['link'])).split('?')[0])
+        ps = Product.objects.filter(link = (unquote(request.data['link'])).split('?')[0])
+        print(ps)
         return Response('test')
 
     @action(detail=False, methods=['delete'])
     def delete_all_prodcut(self, request):
-        Product.objects.all().delete()
+        products = Product.objects.all()
+        quantity = len(products)
+        total_thread = os.cpu_count() * 8
+        threads = []
+        for thread_num in range(total_thread):
+            threads.append(PropagatingThread(target=delete_product, args=(products[
+                int(quantity/total_thread * thread_num): 
+                int(quantity/total_thread * (thread_num + 1))
+                ],)))
+        
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join()
+
+
         return Response('delete all product')
 
     @action(detail=False, methods=['get', 'post'])
@@ -79,7 +85,7 @@ class ProductView(viewsets.GenericViewSet,
     @action(detail=False, methods=['get', 'post'])
     def add_data_source(self, request):
         request.data._mutable = True
-        request.data["key_words"] = json.loads(request.data["key_words"])
+        # request.data["key_words"] = json.loads(request.data["key_words"])
         serializer = SourceDataSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -123,13 +129,13 @@ class ProductView(viewsets.GenericViewSet,
         list_err = []
         images = Image.objects.all()
         for image_instance in images:
-            try: 
+            try:
                 if len(image_instance.embedding_vector) == 1:
                     continue
             except:
                 pass
             try:
-                
+
                 response = requests.get(image_instance.link)
                 # print(f'dowlonaded image {image_instance.product.name}')
                 image = PIL.Image.open(BytesIO(response.content))
@@ -155,11 +161,21 @@ class ProductView(viewsets.GenericViewSet,
     def crawl_all_data(self, request):
         start = timezone.now()
         # craw_lazada_all()
+        crawl_shopee_categories()
         craw_shopee_all()
         end = timezone.now()
         print(end - start)
         return Response(end - start)
-    
+
+    @action(detail=False, methods=['get'])
+    def crawl_data_source(self, request):
+        start = timezone.now()
+        # crawl_lazada_categories()
+        crawl_shopee_categories()
+        end = timezone.now()
+        print(end - start)
+        return Response(end - start)
+
     @action(detail=False, methods=['get'])
     def update_fail_pruduct(self, request):
         products = products_have_no_image
