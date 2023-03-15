@@ -1,6 +1,7 @@
 import numpy as np
 from rest_framework import exceptions
 from tensorflow import keras
+import tensorflow as tf
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.preprocessing import normalize
 import PIL
@@ -24,6 +25,8 @@ from django.utils import timezone
 import json
 import re
 import time
+from dotenv import load_dotenv
+load_dotenv()
 
 # TRAINNED_MODEL = keras.models.load_model('D:\QuanVo\KLTN\models\output_kaggle tllds 245x200 out128 float ac66/checkpoint')
 THREAD_NUMBER_IMAGE = 2
@@ -37,6 +40,13 @@ otps = webdriver.ChromeOptions()
 otps.add_argument("--disable-extensions")
 otps.add_argument("--disable-logging")
 otps.add_argument("--log-level=3")
+
+
+otps2 = webdriver.ChromeOptions()
+otps2.add_argument('--headless')
+otps2.add_argument("--disable-extensions")
+otps2.add_argument("--disable-logging")
+otps2.add_argument("--log-level=3")
 
 # webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=otps).quit()
 
@@ -73,6 +83,21 @@ def check_update_expire(instance):
     except Exception as e:
         return True
 
+def delete_all_product_multithread():
+    products = Product.objects.all()
+    quantity = len(products)
+    total_thread = os.cpu_count() * 8
+    threads = []
+    for thread_num in range(total_thread):
+        threads.append(PropagatingThread(target=delete_product, args=(products[
+            int(quantity/total_thread * thread_num): 
+            int(quantity/total_thread * (thread_num + 1))
+            ],)))
+    
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
 
 def delete_product(products):
     for idx, product in enumerate(products):
@@ -117,29 +142,34 @@ def crawl_lazada_categories():
 
 def crawl_shopee_categories():
     driver = webdriver.Chrome(service=Service(
-        ChromeDriverManager().install()), options=otps)
+        ChromeDriverManager().install()), options=otps2)
     driver.get("https://shopee.vn/all_categories")
 
-    content = driver.page_source
-    soup = BeautifulSoup(content, "html.parser")
+    try:
+        content = driver.page_source
+        soup = BeautifulSoup(content, "html.parser")
 
-    for a in soup.find_all('a', href=True, attrs={"class": "a-sub-category--display-name"}):
-        a['href']
-        a.text
+        for a in soup.find_all('a', href=True, attrs={"class": "a-sub-category--display-name"}):
+            a['href']
+            a.text
 
-    SourceData.objects.filter(platform='Shopee').delete()
+        SourceData.objects.filter(platform='Shopee').delete()
 
-    for a in soup.find_all('a', href=True, attrs={"class": "a-sub-category--display-name"}):
-        category_link = "https://shopee.vn" + a['href']
-        description = "Shopee " + a.text
+        for a in soup.find_all('a', href=True, attrs={"class": "a-sub-category--display-name"}):
+            category_link = "https://shopee.vn" + a['href']
+            description = "Shopee " + a.text
 
-        source = SourceData()
-        source.platform = "Shopee"
-        source.link = f"{category_link}"
-        source.description = unidecode(description)
-        source.save()
+            source = SourceData()
+            source.platform = "Shopee"
+            source.link = f"{category_link}"
+            source.description = unidecode(description)
+            source.save()
 
-    driver.quit()
+        driver.quit()
+    
+    except Exception as e:
+        print(e)
+        driver.quit()
 
 
 def crawl_shopee_categories_from_home():
@@ -186,7 +216,7 @@ def crawl_shopee_categories_from_home():
     driver.quit()
 
 
-def craw_lazada_all():
+def crawl_lazada_all():
     sources = SourceData.objects.filter(platform='Lazada')
 
     threads = []
@@ -199,17 +229,17 @@ def craw_lazada_all():
         thread.join()
 
 
-# def craw_lazada_multi_page(source):
+# def crawl_lazada_multi_page(source):
 #     driver = webdriver.Chrome(
 #         "D:\Downloads\chromedriver_win32\chromedriver.exe", options=otp)
 #     # driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=otp)
 #     if source.multi_page == True:
 #         for page in range(source.min_page, source.max_page+1):
 #             print(f"{source.link}{page}")
-#             craw_lazada_page(f"{source.link}{page}",
+#             crawl_lazada_page(f"{source.link}{page}",
 #                              driver, source.key_words)
 #     else:
-#         craw_lazada_page(source.link, driver, source.key_words)
+#         crawl_lazada_page(source.link, driver, source.key_words)
 
 #     driver.quit()
 
@@ -220,11 +250,11 @@ def crawl_lazada_page_multithread(sources, thread_num):
         ChromeDriverManager().install()), options=otps)
     for i in range(source_quantity):
         if i % THREAD_NUMBER_LINK_SOURCE == thread_num:
-            craw_lazada_page(sources[i], driver, thread_num)
+            crawl_lazada_page(sources[i], driver, thread_num)
     driver.quit()
 
 
-def craw_lazada_page(source, driver, thread_num):
+def crawl_lazada_page(source, driver, thread_num):
     link = source.link
 
     # webdriver.Chrome("D:\Downloads\chromedriver_win32\chromedriver.exe", options=otp)
@@ -268,7 +298,7 @@ def craw_lazada_page(source, driver, thread_num):
                 print("crawl page error", e)
                 pass
 
-        # craw_lazada_image_multithread(product_list)
+        # crawl_lazada_image_multithread(product_list)
 
         try:
             next_page = WebDriverWait(driver, 2).until(EC.presence_of_element_located(
@@ -280,7 +310,7 @@ def craw_lazada_page(source, driver, thread_num):
     # driver.quit()
 
 
-def craw_lazada_image_multithread(product_list):
+def crawl_lazada_image_multithread(product_list):
     try:
         threads = []
         l = len(product_list)
@@ -288,7 +318,7 @@ def craw_lazada_image_multithread(product_list):
             return
         for thread_num in range(0, THREAD_NUMBER_IMAGE):
             threads.append(PropagatingThread(
-                target=craw_lazada_image_thread, args=(product_list, thread_num,)))
+                target=crawl_lazada_image_thread, args=(product_list, thread_num,)))
         for thread in threads:
             thread.start()
         for thread in threads:
@@ -299,19 +329,19 @@ def craw_lazada_image_multithread(product_list):
         pass
 
 
-def craw_lazada_image_thread(product_list, thread_num):
+def crawl_lazada_image_thread(product_list, thread_num):
     driver = webdriver.Chrome(service=Service(
         ChromeDriverManager().install()), options=otps)
 
     l = len(product_list)
     for i in range(l):
         if i % THREAD_NUMBER_IMAGE == thread_num:
-            craw_lazada_image(product_list[i], driver)
+            crawl_lazada_image(product_list[i], driver)
 
     driver.quit()
 
 
-def craw_lazada_image(product, driver):
+def crawl_lazada_image(product, driver):
     driver.get(product.link)
     content = driver.page_source
     soup = BeautifulSoup(content, "html.parser")
@@ -332,66 +362,86 @@ def craw_lazada_image(product, driver):
             pass
 
 
-def craw_shopee_all():
+def crawl_shopee_all():
     try_time = 3
     while try_time >= 0:
-        try_time -= 1
+        try:
+            try_time -= 1
 
-        sources = SourceData.objects.filter(platform='Shopee', crawled__in=[False])
-        threads = []
-        for thread_num in range(0, THREAD_NUMBER_LINK_SOURCE):
-            threads.append(PropagatingThread(
-                target=crawl_shopee_page_multithread, args=(sources, thread_num,)))
-        for thread in threads:
-            thread.start()
-        for thread in threads:
-            thread.join()
+            sources = SourceData.objects.filter(platform='Shopee', crawled__in=[False])
+            threads = []
+            for thread_num in range(0, THREAD_NUMBER_LINK_SOURCE):
+                threads.append(PropagatingThread(
+                    target=crawl_shopee_page_multithread, args=(sources, thread_num,)))
+            for thread in threads:
+                thread.start()
+            for thread in threads:
+                thread.join()
 
-        sources = SourceData.objects.filter(platform='Shopee', crawled__in=[False])
+            sources = SourceData.objects.filter(platform='Shopee', crawled__in=[False])
+            if len(sources) == 0:
+                return
+        except Exception as e:
+            print("crawl shopee all error ", e)
 
 
 
 
 def crawl_shopee_page_multithread(sources, thread_num):
+    # sources = sources[:2]
     try:
         driver = webdriver.Chrome(service=Service(
             ChromeDriverManager().install()), options=otps)
         source_quantity = len(sources)
         for i in range(source_quantity):
             if i % THREAD_NUMBER_LINK_SOURCE == thread_num:
-                craw_shopee_page(sources[i], driver)
+                crawl_shopee_page(sources[i], driver)
         driver.quit()
-    except Exception as e:
+    except Exception as err_374:
         driver.quit()
-        print('shopee multithread crawl page error', e)
+        print('shopee multithread crawl page error', err_374)
 
 
-def craw_shopee_image(product, driver):
+def crawl_shopee_image(product, driver):
     driver.get(product.link)
     try_times = 0
-
-    while try_times < 6:
+    clicked = False
+    while try_times < 10:
         try:
-            image_menu = WebDriverWait(driver, 2).until(
+            image_menu = WebDriverWait(driver, 10).until(
                 EC.element_to_be_clickable((By.CSS_SELECTOR, "div.MZ9yDd ")))
             image_menu.click()
+            clicked = True
         except Exception as e:
-            # print(e)
+            print("check", e)
+            time.sleep(1)
             try_times += 1
 
     try_times = 0
     while try_times < 10:
+        
         try:
             WebDriverWait(driver, 1).until(
                 EC.presence_of_element_located((By.CSS_SELECTOR, ".rNteT0 div")))
-            try_times = 10
+            # try_times = 10
             # print("find it")
         except Exception as e:
             # print(e)
             try_times += 1
 
-    content = driver.page_source
-    soup = BeautifulSoup(content, "html.parser")
+        try_times += 1
+        content = driver.page_source
+        soup = BeautifulSoup(content, "html.parser")
+        if len(soup.find_all('div', attrs={"class": "y4F+fJ rNteT0"})) == 0:
+            time.sleep(1)
+        else:
+            break
+ 
+    
+
+    if len(soup.find_all('div', attrs={"class": "y4F+fJ rNteT0"})) == 0:
+        raise exceptions.ValidationError(f"shopee cannot find image {product.name} {clicked}")
+    
     for a in soup.find_all('div', attrs={"class": "y4F+fJ rNteT0"}):
         try:
             image_link = a.find(
@@ -409,36 +459,52 @@ def craw_shopee_image(product, driver):
             print("craw image shopee product error", e)
             pass
 
+    product.crawled = True
+    product.save()
 
-def craw_shopee_image_multithread(product_list):
-    try:
-        threads = []
-        l = len(product_list)
-        if l == 0:
+def get_not_crawl_products(product_list):
+    ps = [product for product in product_list if product.crawled == False]
+    return ps
+    
+def crawl_shopee_image_multithread(product_list):
+    try_time = 3
+    while try_time >= 0:
+        products_not_crawled = get_not_crawl_products(product_list)
+        if len(products_not_crawled) == 0:
             return
-        for thread_num in range(0, THREAD_NUMBER_IMAGE):
-            threads.append(PropagatingThread(
-                target=crawl_shopee_image_thread, args=(product_list, thread_num,)))
-        for thread in threads:
-            thread.start()
-        for thread in threads:
-            thread.join()
+        
+        try_time-=1
 
-    except Exception as e:
-        print("crawl image error", e)
-        pass
+        try:
+            threads = []
+            l = len(products_not_crawled)
+            if l == 0:
+                return
+            for thread_num in range(0, THREAD_NUMBER_IMAGE):
+                threads.append(PropagatingThread(
+                    target=crawl_shopee_image_thread, args=(products_not_crawled, thread_num,)))
+            for thread in threads:
+                thread.start()
+            for thread in threads:
+                thread.join()
+
+        except Exception as e:
+            print("shopee crawl image error", e)
+            pass
 
 
 def crawl_shopee_image_thread(product_list, thread_num):
     driver = webdriver.Chrome(service=Service(
         ChromeDriverManager().install()), options=otps)
     try:
-        # driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=otp)
+
         l = len(product_list)
         for i in range(l):
             if i % THREAD_NUMBER_IMAGE == thread_num:
-                craw_shopee_image(product_list[i], driver)
-
+                try:
+                    crawl_shopee_image(product_list[i], driver)
+                except Exception as err:
+                    print('shopee crawl image error', err)
     except Exception as e:
         driver.quit()
         print('shopee multithread crawl image error', e)
@@ -454,13 +520,13 @@ def shopee_scroll_to_end(driver):
         driver.execute_script(
             f"window.scrollTo({scroll_length}, {scroll_length + scroll_step})")
         scroll_length += scroll_step
-        # time.sleep(0.5)
+        time.sleep(0.5)
         WebDriverWait(driver, 10).until(
             EC.presence_of_all_elements_located((By.CSS_SELECTOR, "a[data-sqe=\"link\"]")))
         height = driver.execute_script("return document.body.scrollHeight")
 
 
-def craw_shopee_page(source, driver):
+def crawl_shopee_page(source, driver):
     link = source.link
     # driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=otp)
     same = 0
@@ -468,8 +534,8 @@ def craw_shopee_page(source, driver):
     try:
         driver.get(link)
 
-    except Exception as e:
-        print("crawl shopee page 0 error", e)
+    except Exception as e_481:
+        print("crawl shopee page 0 error", e_481)
 
     while same <= 5:
 
@@ -507,21 +573,21 @@ def craw_shopee_page(source, driver):
                         p.save()
                         same = 0
                         product_list.append(p)
-                except Exception as e:
-                    print("shopee crawl page find element", e)
+                except Exception as e1:
+                    print("shopee crawl page find element", e1)
 
-        except Exception as e:
-            print(f'shopee crawl page error {link}', e)
+        except Exception as err:
+            print(f'shopee crawl page error {link}', err)
             pass
 
-        # craw_shopee_image_multithread(product_list)
+        crawl_shopee_image_multithread(product_list)
 
         try:
             next_page = WebDriverWait(driver, 10).until(EC.presence_of_element_located(
                 (By.CSS_SELECTOR, ".shopee-icon-button.shopee-icon-button--right")))
             next_page.click()
-        except:
-            print(f'shopee change page error {link}', e)
+        except Exception as e_533:
+            print(f'shopee change page error {link}', e_533)
             pass
     source.crawled = True
     source.save()

@@ -13,36 +13,44 @@ from bs4 import BeautifulSoup
 import re
 from unidecode import unidecode
 
+otps = webdriver.ChromeOptions()
+# otps.add_argument('--headless')
+# otps.add_argument("--disable-extensions")
+# otps.add_argument("--disable-logging")
+# otps.add_argument("--log-level=3")
+random_proxy = "117.5.106.105:4001"
+PROXY = "61.28.238.4:3128"
+otps.add_argument('--proxy-server=%s' % PROXY)
+
 # Initialize the webdriver
 driver = webdriver.Chrome(
-    "D:\Downloads\chromedriver_win32\chromedriver.exe")
+    "D:\Downloads\chromedriver_win32\chromedriver.exe", options=otps)
 # driver.maximize_window()
 # Navigate to the Lazada Vietnam website
-driver.get("https://shopee.vn/all_categories")
+driver.get("https://shopee.vn/H%E1%BA%A1t-gi%E1%BB%91ng-th%E1%BB%A7y-sinh-c%C3%A2y-th%E1%BB%A7y-sinh-Tr%C3%A2n-Ch%C3%A2u-Ng%C6%B0u-Mao-Chi%C3%AAn-C%E1%BB%8F-T%C3%ACnh-Y%C3%AAu-D%E1%BB%85-Tr%E1%BB%93ng-Kh%C3%B4ng-Co2-i.118431449.4006720310?sp_atk=610fba44-5fe7-4042-ac46-49b229c98295&xptdk=610fba44-5fe7-4042-ac46-49b229c98295")
+# driver.get("https://whatismyipaddress.com/")
 
+try_times = 0
 
-# close = driver.execute_script(
-#         'return document.querySelector("#main shopee-banner-popup-stateful").shadowRoot.querySelector("div.home-popup__close-area div.shopee-popup__close-btn")')
-# close.click()
+while try_times < 6:
+    try:
+        image_menu = WebDriverWait(driver, 2).until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, "div.MZ9yDd ")))
+        image_menu.click()
+    except Exception as e:
+        # print(e)
+        try_times += 1
 
-# next = driver.execute_script(
-#         'return document.querySelector("div.LYxxi- div.carousel-arrow--next")')
-# next.click()
-# time.sleep(2)
-# image_menu = WebDriverWait(driver, 2).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, "div.K34m1x")))
-
-# height = driver.execute_script("return document.body.scrollHeight")
-# scroll_length = 0
-# scroll_step = 500
-
-# while scroll_length < height:
-#     driver.execute_script(
-#         f"window.scrollTo({scroll_length}, {scroll_length + scroll_step})")
-#     scroll_length += scroll_step
-#     # time.sleep(0.5)
-#     WebDriverWait(driver, 10).until(
-#         EC.presence_of_all_elements_located((By.CSS_SELECTOR, "a[data-sqe=\"link\"]")))
-#     height = driver.execute_script("return document.body.scrollHeight")
+try_times = 0
+while try_times < 10:
+    try:
+        WebDriverWait(driver, 1).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, ".rNteT0 div")))
+        try_times = 10
+        # print("find it")
+    except Exception as e:
+        # print(e)
+        try_times += 1
 
 content = driver.page_source
 soup = BeautifulSoup(content, "html.parser")
@@ -51,13 +59,12 @@ soup = BeautifulSoup(content, "html.parser")
 #     f.write(f"{str(soup)}")
 count = 0
 
-for a in soup.find_all('a', href = True, attrs={"class": "a-sub-category--display-name"}):
+for a in soup.find_all('div', attrs={"class": "y4F+fJ rNteT0"}):
     count += 1
     print(count)
-    # print(a.find('a', attrs={"data-sqe": "link"}))
-    product_link = a['href']
-    print(f"https://shopee.vn{product_link}")
-    print(a.text)
+    image_link = a.find('div', attrs={"class": "A4dsoy uno8xj"})['style']
+    image_link = re.findall("url\(\"(.+)\"\)", image_link)[0]
+    print(image_link)
     print('\n')
 
 print(count, driver.current_url)
@@ -69,3 +76,39 @@ print(count, driver.current_url)
 
 
 driver.quit()
+
+
+# from selenium import webdriver
+# from selenium.webdriver.common.by import By
+# import chromedriver_autoinstaller # pip install chromedriver-autoinstaller
+
+# chromedriver_autoinstaller.install() # To update your chromedriver automatically
+# driver = webdriver.Chrome()
+
+# # Get free proxies for rotating
+# def get_free_proxies(driver):
+#     driver.get('https://sslproxies.org')
+
+#     table = driver.find_element(By.TAG_NAME, 'table')
+#     thead = table.find_element(By.TAG_NAME, 'thead').find_elements(By.TAG_NAME, 'th')
+#     tbody = table.find_element(By.TAG_NAME, 'tbody').find_elements(By.TAG_NAME, 'tr')
+
+#     headers = []
+#     for th in thead:
+#         headers.append(th.text.strip())
+
+#     proxies = []
+#     for tr in tbody:
+#         proxy_data = {}
+#         tds = tr.find_elements(By.TAG_NAME, 'td')
+#         for i in range(len(headers)):
+#             proxy_data[headers[i]] = tds[i].text.strip()
+#         if proxy_data['Country'] == 'Vietnam':
+#             proxies.append(proxy_data)
+    
+#     return proxies
+
+
+# free_proxies = get_free_proxies(driver)
+
+# print(free_proxies)

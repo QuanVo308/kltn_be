@@ -24,6 +24,7 @@ class Product(models.Model):
     price = models.CharField(max_length=250, null = True, default="")
     link = models.CharField(max_length=250, null = True, default="")
     source_description = models.CharField(max_length=250, null = True, default={})
+    crawled = models.BooleanField(default=False)
     updated_at = models.DateTimeField(auto_now=True,
                                       help_text='Thời gian cập nhật')
     created_at = models.DateTimeField(auto_now_add=True,

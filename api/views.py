@@ -25,30 +25,29 @@ class ProductView(viewsets.GenericViewSet,
 
     @action(detail=False, methods=['get', 'post'])
     def test(self, request):
-        sources = SourceData.objects.filter(platform='Shopee', crawled__in=[False])
+        print(unquote(request.data['link']).split('?')[0])
+        products = Product.objects.filter(link = unquote(request.data['link']).split('?')[0])
         # sources = sources.filter(platform='Shopee', crawled=False)
         
-        print(len(sources))
+        print(len(products))
+        print(products[0])
+        return Response('test')
+
+    @action(detail=False, methods=['get', 'post'])
+    def test_product_exist(self, request):
+        print(unquote(request.data['link']).split('?')[0])
+        print(unidecode(request.data['name']))
+        # products = Product.objects.filter(link = unquote(request.data['link']).split('?')[0])
+        products = Product.objects.filter(name__icontains = unidecode(request.data['name']))
+        # sources = sources.filter(platform='Shopee', crawled=False)
+        
+        print(len(products))
+        print(products[0])
         return Response('test')
 
     @action(detail=False, methods=['delete'])
     def delete_all_prodcut(self, request):
-        products = Product.objects.all()
-        quantity = len(products)
-        total_thread = os.cpu_count() * 8
-        threads = []
-        for thread_num in range(total_thread):
-            threads.append(PropagatingThread(target=delete_product, args=(products[
-                int(quantity/total_thread * thread_num): 
-                int(quantity/total_thread * (thread_num + 1))
-                ],)))
-        
-        for thread in threads:
-            thread.start()
-        for thread in threads:
-            thread.join()
-
-
+        delete_all_product_multithread()
         return Response('delete all product')
 
     @action(detail=False, methods=['get', 'post'])
@@ -162,8 +161,9 @@ class ProductView(viewsets.GenericViewSet,
     def crawl_all_data(self, request):
         start = timezone.now()
         # craw_lazada_all()
+        delete_all_product_multithread()
         crawl_shopee_categories()
-        craw_shopee_all()
+        crawl_shopee_all()
         end = timezone.now()
         print(end - start)
         return Response(end - start)
@@ -180,7 +180,7 @@ class ProductView(viewsets.GenericViewSet,
     @action(detail=False, methods=['get'])
     def update_fail_pruduct(self, request):
         products = products_have_no_image
-        craw_lazada_image_multithread(products)
+        crawl_lazada_image_multithread(products)
         return Response("updated product have no image")
 
 
@@ -270,14 +270,15 @@ class ProductTestView(viewsets.GenericViewSet,
             # if anchor_embedding.shape != (1,MODEL_OUTPUT_LENGTH) or test_embedding.shape != (1,MODEL_OUTPUT_LENGTH):
             #     return Response(product.name)
 
+            euclidean_distance = tf.math.reduce_euclidean_norm(anchor_embedding - test_embedding, axis=1).numpy()
             anchor_embedding = normalize(anchor_embedding, axis=1)
             test_embedding = normalize(test_embedding, axis=1)
-            distance = cosine_similarity(anchor_embedding, test_embedding)
+            cosine_distance = cosine_similarity(anchor_embedding, test_embedding)
             all_distance.append(
-                {'name': product.name, 'distance': distance[0][0]})
+                {'name': product.name, 'cosine_distance': cosine_distance[0][0], 'euclidean_distance': euclidean_distance})
 
         all_distance = sorted(
-            all_distance, key=lambda d: d['distance'], reverse=True)
+            all_distance, key=lambda d: d['cosine_distance'], reverse=True)
         name_order = []
         for i in all_distance:
             print(i['name'])
