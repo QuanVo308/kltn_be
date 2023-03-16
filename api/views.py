@@ -240,7 +240,7 @@ class ProductTestView(viewsets.GenericViewSet,
 
     @action(detail=False, methods=['get', 'post'])
     def add_data_test(self, request):
-        base_dir = pathlib.Path("D:/Downloads/custom_test_dataset/")
+        base_dir = pathlib.Path(os.environ.get('TEST_DATASET'))
 
         for path in base_dir.glob("*"):
             print(str(path))
