@@ -434,12 +434,20 @@ def crawl_shopee_image(product, driver):
         try_times += 1
         content = driver.page_source
         soup = BeautifulSoup(content, "html.parser")
-        len_new = len(soup.select("div.rNteT0 div.O0-58D"))
+        all_soup = soup.find_all('div', attrs={"class": "y4F+fJ rNteT0"})
+        len_new = len(all_soup)
         if len_new == 0 or len_new != len_old:
-            len_old = len_new
+            len_old = len
             time.sleep(1)
         else:
-            break
+            try:
+                for a in all_soup:
+                    image_link = a.find(
+                    'div', attrs={"class": "A4dsoy uno8xj"})['style']
+                    image_link = re.findall("url\(\"(.+)\"\)", image_link)[0]
+                break
+            except:
+                pass
  
     content = driver.page_source
     soup = BeautifulSoup(content, "html.parser")
