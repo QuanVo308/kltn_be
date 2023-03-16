@@ -29,8 +29,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # TRAINNED_MODEL = keras.models.load_model('D:\QuanVo\KLTN\models\output_kaggle tllds 245x200 out128 float ac66/checkpoint')
-THREAD_NUMBER_IMAGE = 2
-THREAD_NUMBER_LINK_SOURCE = math.ceil(os.cpu_count()/2.0)
+THREAD_NUMBER_IMAGE = 6
+THREAD_NUMBER_LINK_SOURCE = 1
 MODEL_OUTPUT_LENGTH = 130
 EXPIRE_INFO_DAYS = 3
 
@@ -541,40 +541,49 @@ def crawl_shopee_page(source, driver):
 
         try:
             shopee_scroll_to_end(driver)
+            try_time = 3
+            while try_time >= 0:
 
-            content = driver.page_source
-            print(driver.current_url)
-            soup = BeautifulSoup(content, "html.parser")
-            product_list = []
-            same += 1
-            for a in soup.find_all('div', attrs={"class": "col-xs-2-4 shopee-search-item-result__item"}):
-                try:
-                    product_price = a.find(
-                        'span', attrs={"class": "du3pq0"}).getText()
-                    product_name = a.find(
-                        'div', attrs={"class": "_1yN94N WoKSjC _2KkMCe"}).getText()  # name
-                    product_link = a.find(
-                        'a', attrs={"data-sqe": "link"})['href'].split('?')[0]  # product link
+                try_time -= 1
+                failed = False
 
-                    products = Product.objects.filter(
-                        name=f"{unidecode(product_name)}")
+                content = driver.page_source
+                print(driver.current_url)
+                soup = BeautifulSoup(content, "html.parser")
+                product_list = []
+                same += 1
+                for a in soup.find_all('div', attrs={"class": "col-xs-2-4 shopee-search-item-result__item"}):
+                    try:
+                        product_price = a.find(
+                            'span', attrs={"class": "du3pq0"}).getText()
+                        product_name = a.find(
+                            'div', attrs={"class": "_1yN94N WoKSjC _2KkMCe"}).getText()  # name
+                        product_link = a.find(
+                            'a', attrs={"data-sqe": "link"})['href'].split('?')[0]  # product link
 
-                    p = Product() if len(products) == 0 else products[0]
+                        products = Product.objects.filter(
+                            name=f"{unidecode(product_name)}")
 
-                    # new_key_words = [kw for kw in key_words if kw not in p.key_words]
+                        p = Product() if len(products) == 0 else products[0]
 
-                    # if check_update_expire(p) or len(new_key_words) != 0:
-                    if check_update_expire(p):
-                        p.link = f"https://shopee.vn{product_link}"
-                        p.name = unidecode(product_name)
-                        p.price = unidecode(product_price)
-                        p.source_description = source.description
-                        # p.key_words.extend(new_key_words)
-                        p.save()
-                        same = 0
-                        product_list.append(p)
-                except Exception as e1:
-                    print("shopee crawl page find element", e1)
+                        # new_key_words = [kw for kw in key_words if kw not in p.key_words]
+
+                        # if check_update_expire(p) or len(new_key_words) != 0:
+                        if check_update_expire(p):
+                            p.link = f"https://shopee.vn{product_link}"
+                            p.name = unidecode(product_name)
+                            p.price = unidecode(product_price)
+                            p.source_description = source.description
+                            # p.key_words.extend(new_key_words)
+                            p.save()
+                            same = 0
+                            product_list.append(p)
+                    except Exception as e1:
+                        failed = True
+                        print("shopee crawl page find element", e1)
+                    
+                if not failed:
+                    break
 
         except Exception as err:
             print(f'shopee crawl page error {link}', err)
