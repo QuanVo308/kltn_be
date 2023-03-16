@@ -406,6 +406,7 @@ def crawl_shopee_image(product, driver):
     driver.get(product.link)
     try_times = 0
     clicked = False
+    len_old = 0
     while try_times < 10:
         try:
             image_menu = WebDriverWait(driver, 10).until(
@@ -433,15 +434,18 @@ def crawl_shopee_image(product, driver):
         try_times += 1
         content = driver.page_source
         soup = BeautifulSoup(content, "html.parser")
-        if len(soup.find_all('div', attrs={"class": "y4F+fJ rNteT0"})) == 0:
+        len_new = len(soup.select("div.rNteT0 div.O0-58D"))
+        if len_new == 0 or len_new != len_old:
+            len_old = len_new
             time.sleep(1)
         else:
             break
  
-    
+    content = driver.page_source
+    soup = BeautifulSoup(content, "html.parser")
 
-    if len(soup.find_all('div', attrs={"class": "y4F+fJ rNteT0"})) == 0:
-        raise exceptions.ValidationError(f"shopee cannot find image {product.name} {clicked}")
+    # if len(soup.find_all('div', attrs={"class": "y4F+fJ rNteT0"})) == 0:
+    #     raise exceptions.ValidationError(f"shopee cannot find image {product.name} {clicked}")
     
     for a in soup.find_all('div', attrs={"class": "y4F+fJ rNteT0"}):
         try:
