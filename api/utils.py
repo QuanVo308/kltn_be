@@ -43,7 +43,7 @@ otps.add_argument("--log-level=3")
 
 
 otps2 = webdriver.ChromeOptions()
-otps2.add_argument('--headless')
+# otps2.add_argument('--headless')
 otps2.add_argument("--disable-extensions")
 otps2.add_argument("--disable-logging")
 otps2.add_argument("--log-level=3")
@@ -413,7 +413,7 @@ def crawl_shopee_image(product, driver):
             image_menu.click()
             clicked = True
         except Exception as e:
-            print("check", e)
+            # print("check", e)
             time.sleep(1)
             try_times += 1
 
@@ -495,7 +495,7 @@ def crawl_shopee_image_multithread(product_list):
 
 def crawl_shopee_image_thread(product_list, thread_num):
     driver = webdriver.Chrome(service=Service(
-        ChromeDriverManager().install()), options=otps)
+        ChromeDriverManager().install()), options=otps2)
     try:
 
         l = len(product_list)

@@ -18,7 +18,7 @@ otps = webdriver.ChromeOptions()
 # otps.add_argument("--disable-extensions")
 # otps.add_argument("--disable-logging")
 # otps.add_argument("--log-level=3")
-random_proxy = "117.5.106.105:4001"
+# random_proxy = "117.5.106.105:4001"
 PROXY = "61.28.238.4:3128"
 otps.add_argument('--proxy-server=%s' % PROXY)
 
@@ -27,8 +27,8 @@ driver = webdriver.Chrome(
     "D:\Downloads\chromedriver_win32\chromedriver.exe", options=otps)
 # driver.maximize_window()
 # Navigate to the Lazada Vietnam website
-driver.get("https://shopee.vn/H%E1%BA%A1t-gi%E1%BB%91ng-th%E1%BB%A7y-sinh-c%C3%A2y-th%E1%BB%A7y-sinh-Tr%C3%A2n-Ch%C3%A2u-Ng%C6%B0u-Mao-Chi%C3%AAn-C%E1%BB%8F-T%C3%ACnh-Y%C3%AAu-D%E1%BB%85-Tr%E1%BB%93ng-Kh%C3%B4ng-Co2-i.118431449.4006720310?sp_atk=610fba44-5fe7-4042-ac46-49b229c98295&xptdk=610fba44-5fe7-4042-ac46-49b229c98295")
-# driver.get("https://whatismyipaddress.com/")
+# driver.get("https://shopee.vn/H%E1%BA%A1t-gi%E1%BB%91ng-th%E1%BB%A7y-sinh-c%C3%A2y-th%E1%BB%A7y-sinh-Tr%C3%A2n-Ch%C3%A2u-Ng%C6%B0u-Mao-Chi%C3%AAn-C%E1%BB%8F-T%C3%ACnh-Y%C3%AAu-D%E1%BB%85-Tr%E1%BB%93ng-Kh%C3%B4ng-Co2-i.118431449.4006720310?sp_atk=610fba44-5fe7-4042-ac46-49b229c98295&xptdk=610fba44-5fe7-4042-ac46-49b229c98295")
+driver.get("https://whatismyipaddress.com/")
 
 try_times = 0
 
