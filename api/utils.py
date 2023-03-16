@@ -411,6 +411,7 @@ def crawl_shopee_image(product, driver):
             image_menu = WebDriverWait(driver, 10).until(
                 EC.element_to_be_clickable((By.CSS_SELECTOR, "div.MZ9yDd ")))
             image_menu.click()
+            break
             clicked = True
         except Exception as e:
             # print("check", e)

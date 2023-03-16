@@ -19,38 +19,54 @@ otps = webdriver.ChromeOptions()
 # otps.add_argument("--disable-logging")
 # otps.add_argument("--log-level=3")
 # random_proxy = "117.5.106.105:4001"
-PROXY = "61.28.238.4:3128"
-otps.add_argument('--proxy-server=%s' % PROXY)
+# PROXY = "61.28.238.4:3128"
+# otps.add_argument('--proxy-server=%s' % PROXY)
 
 # Initialize the webdriver
 driver = webdriver.Chrome(
     "D:\Downloads\chromedriver_win32\chromedriver.exe", options=otps)
 # driver.maximize_window()
 # Navigate to the Lazada Vietnam website
-# driver.get("https://shopee.vn/H%E1%BA%A1t-gi%E1%BB%91ng-th%E1%BB%A7y-sinh-c%C3%A2y-th%E1%BB%A7y-sinh-Tr%C3%A2n-Ch%C3%A2u-Ng%C6%B0u-Mao-Chi%C3%AAn-C%E1%BB%8F-T%C3%ACnh-Y%C3%AAu-D%E1%BB%85-Tr%E1%BB%93ng-Kh%C3%B4ng-Co2-i.118431449.4006720310?sp_atk=610fba44-5fe7-4042-ac46-49b229c98295&xptdk=610fba44-5fe7-4042-ac46-49b229c98295")
-driver.get("https://whatismyipaddress.com/")
+driver.get("https://shopee.vn/H%E1%BA%A1t-gi%E1%BB%91ng-th%E1%BB%A7y-sinh-c%C3%A2y-th%E1%BB%A7y-sinh-Tr%C3%A2n-Ch%C3%A2u-Ng%C6%B0u-Mao-Chi%C3%AAn-C%E1%BB%8F-T%C3%ACnh-Y%C3%AAu-D%E1%BB%85-Tr%E1%BB%93ng-Kh%C3%B4ng-Co2-i.118431449.4006720310?sp_atk=610fba44-5fe7-4042-ac46-49b229c98295&xptdk=610fba44-5fe7-4042-ac46-49b229c98295")
 
 try_times = 0
-
-while try_times < 6:
+clicked = False
+while try_times < 10:
     try:
-        image_menu = WebDriverWait(driver, 2).until(
+        image_menu = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.CSS_SELECTOR, "div.MZ9yDd ")))
         image_menu.click()
+        print('click')
+        break
+        clicked = True
     except Exception as e:
-        # print(e)
+        # print("check", e)
+        time.sleep(1)
+        print('not click')
         try_times += 1
 
 try_times = 0
 while try_times < 10:
+    
     try:
         WebDriverWait(driver, 1).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, ".rNteT0 div")))
-        try_times = 10
-        # print("find it")
+        # try_times = 10
+        print("find it")
     except Exception as e:
         # print(e)
+        print("not find it")
         try_times += 1
+
+    try_times += 1
+    content = driver.page_source
+    soup = BeautifulSoup(content, "html.parser")
+    if len(soup.find_all('div', attrs={"class": "y4F+fJ rNteT0"})) == 0:
+        print('sleeping')
+        time.sleep(1)
+    else:
+        print('done')
+        break
 
 content = driver.page_source
 soup = BeautifulSoup(content, "html.parser")
@@ -59,13 +75,13 @@ soup = BeautifulSoup(content, "html.parser")
 #     f.write(f"{str(soup)}")
 count = 0
 
-for a in soup.find_all('div', attrs={"class": "y4F+fJ rNteT0"}):
-    count += 1
-    print(count)
-    image_link = a.find('div', attrs={"class": "A4dsoy uno8xj"})['style']
-    image_link = re.findall("url\(\"(.+)\"\)", image_link)[0]
-    print(image_link)
-    print('\n')
+# for a in soup.find_all('div', attrs={"class": "y4F+fJ rNteT0"}):
+#     count += 1
+#     print(count)
+#     image_link = a.find('div', attrs={"class": "A4dsoy uno8xj"})['style']
+#     image_link = re.findall("url\(\"(.+)\"\)", image_link)[0]
+#     print(image_link)
+#     print('\n')
 
 print(count, driver.current_url)
 
