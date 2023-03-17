@@ -9,8 +9,6 @@ import os
 from django.http import FileResponse
 import io
 from django.core.files import File
-import requests
-from io import BytesIO
 
 
 class ProductView(viewsets.GenericViewSet,

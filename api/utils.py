@@ -20,16 +20,18 @@ from selenium import webdriver
 from bs4 import BeautifulSoup
 import pandas as pd
 import os
+import requests
 import datetime
 from django.utils import timezone
 import json
 import re
 import time
+from io import BytesIO
 from dotenv import load_dotenv
 load_dotenv()
 
-# TRAINNED_MODEL = keras.models.load_model('D:\QuanVo\KLTN\models\output_kaggle tllds 245x200 out128 float ac66/checkpoint')
-THREAD_NUMBER_IMAGE = 6
+TRAINNED_MODEL = keras.models.load_model('D:\QuanVo\KLTN\models\output_kaggle tllds 245x200 out128 float ac66/checkpoint')
+THREAD_NUMBER_IMAGE = 2
 THREAD_NUMBER_LINK_SOURCE = 1
 MODEL_OUTPUT_LENGTH = 130
 EXPIRE_INFO_DAYS = 3
@@ -50,6 +52,9 @@ otps2.add_argument("--log-level=3")
 
 # webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=otps).quit()
 
+def load_models():
+    return TRAINNED_MODEL
+    # return keras.models.load_model('C:/Users/Quan/Documents/Temp/models/resnet18 64x64 output 150 margin1 acc74/checkpoint')
 
 class PropagatingThread(Thread):
     def run(self):
@@ -105,9 +110,6 @@ def delete_product(products):
         product.delete()
 
 
-def load_models():
-    # return TRAINNED_MODEL
-    return keras.models.load_model('C:/Users/Quan/Documents/Temp/models/resnet18 64x64 output 150 margin1 acc74/checkpoint')
 
 
 def crawl_lazada_categories():
@@ -363,13 +365,16 @@ def crawl_lazada_image(product, driver):
 
 
 def crawl_shopee_all():
+    """
+    crawl everything of shopee source, product, image with multithread"""
     try_time = 3
+    # try again if any error occur
     while try_time >= 0:
         try:
             try_time -= 1
-
             sources = SourceData.objects.filter(platform='Shopee', crawled__in=[False])
             threads = []
+            # distribute source for threads
             for thread_num in range(0, THREAD_NUMBER_LINK_SOURCE):
                 threads.append(PropagatingThread(
                     target=crawl_shopee_page_multithread, args=(sources, thread_num,)))
@@ -388,7 +393,11 @@ def crawl_shopee_all():
 
 
 def crawl_shopee_page_multithread(sources, thread_num):
+    """
+    decide which source of each thread belong to and init webdriver
+    """
     # sources = sources[:2]
+
     try:
         driver = webdriver.Chrome(service=Service(
             ChromeDriverManager().install()), options=otps)
@@ -401,12 +410,19 @@ def crawl_shopee_page_multithread(sources, thread_num):
         driver.quit()
         print('shopee multithread crawl page error', err_374)
 
+def exact_embedding_from_link(link):
+    response = requests.get(link)
+    image = PIL.Image.open(BytesIO(response.content))
+    image = image.resize(size=(200, 245))
+    image_arr = np.asarray(image)/255.
+    embedding_vector = load_models().predict(np.stack([image_arr]), verbose=0).tolist()
+    return embedding_vector
 
 def crawl_shopee_image(product, driver):
     driver.get(product.link)
     try_times = 0
     clicked = False
-    len_old = 0
+    # try again if cannot find element to click to open image menu
     while try_times < 10:
         try:
             image_menu = WebDriverWait(driver, 10).until(
@@ -436,8 +452,7 @@ def crawl_shopee_image(product, driver):
         soup = BeautifulSoup(content, "html.parser")
         all_soup = soup.find_all('div', attrs={"class": "y4F+fJ rNteT0"})
         len_new = len(all_soup)
-        if len_new == 0 or len_new != len_old:
-            len_old = len
+        if len_new == 0:
             time.sleep(1)
         else:
             try:
@@ -466,6 +481,7 @@ def crawl_shopee_image(product, driver):
             if check_update_expire(i):
                 i.link = f"{image_link}"
                 i.product = product
+                i.embedding_vector = exact_embedding_from_link(i.link)
                 i.save()
 
         except Exception as e:
@@ -480,7 +496,7 @@ def get_not_crawl_products(product_list):
     return ps
     
 def crawl_shopee_image_multithread(product_list):
-    try_time = 3
+    try_time = 5
     while try_time >= 0:
         products_not_crawled = get_not_crawl_products(product_list)
         if len(products_not_crawled) == 0:
