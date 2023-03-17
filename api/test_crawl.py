@@ -61,12 +61,20 @@ while try_times < 10:
     try_times += 1
     content = driver.page_source
     soup = BeautifulSoup(content, "html.parser")
-    if len(soup.select("div.rNteT0 div.O0-58D")) == 0:
-        print('sleeping')
+    all_soup = soup.find_all('div', attrs={"class": "y4F+fJ rNteT0"})
+    len_new = len(all_soup)
+    if len_new == 0:
         time.sleep(1)
     else:
-        print('done')
-        break
+        try:
+            for a in all_soup:
+                image_link = a.find(
+                'div', attrs={"class": "A4dsoy uno8xj"})['style']
+                image_link = re.findall("url\(\"(.+)\"\)", image_link)[0]
+            break
+        except:
+            print(try_times)
+            pass
 
 content = driver.page_source
 soup = BeautifulSoup(content, "html.parser")
@@ -83,6 +91,8 @@ for a in soup.find_all('div', attrs={"class": "y4F+fJ rNteT0"}):
         #     i.link = f"{image_link}"
         #     i.product = product
         #     i.save()
+
+        print(image_link)
 
     except Exception as e:
         print("craw image shopee product error", e)

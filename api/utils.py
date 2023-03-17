@@ -30,11 +30,11 @@ from io import BytesIO
 from dotenv import load_dotenv
 load_dotenv()
 
-TRAINNED_MODEL = keras.models.load_model('D:\QuanVo\KLTN\models\output_kaggle tllds 245x200 out128 float ac66/checkpoint')
-THREAD_NUMBER_IMAGE = 5
-THREAD_NUMBER_LINK_SOURCE = 1
-MODEL_OUTPUT_LENGTH = 130
-EXPIRE_INFO_DAYS = 3
+TRAINNED_MODEL = keras.models.load_model(os.environ.get('TRAINNED_MODEL_PATH'))
+THREAD_QUANTITY_CRAWL_PRODUCT = int(os.environ.get('THREAD_QUANTITY_CRAWL_PRODUCT'))
+THREAD_NUMBER_LINK_SOURCE = int(os.environ.get('THREAD_QUANTITY_CRAWL_LINK_SOURCE'))
+MODEL_OUTPUT_LENGTH = int(os.environ.get('MODEL_OUTPUT_LENGTH'))
+EXPIRE_INFO_DAYS = int(os.environ.get('EXPIRE_INFO_DAYS'))
 
 
 otps = webdriver.ChromeOptions()
@@ -318,7 +318,7 @@ def crawl_lazada_image_multithread(product_list):
         l = len(product_list)
         if l == 0:
             return
-        for thread_num in range(0, THREAD_NUMBER_IMAGE):
+        for thread_num in range(0, THREAD_QUANTITY_CRAWL_PRODUCT):
             threads.append(PropagatingThread(
                 target=crawl_lazada_image_thread, args=(product_list, thread_num,)))
         for thread in threads:
@@ -337,7 +337,7 @@ def crawl_lazada_image_thread(product_list, thread_num):
 
     l = len(product_list)
     for i in range(l):
-        if i % THREAD_NUMBER_IMAGE == thread_num:
+        if i % THREAD_QUANTITY_CRAWL_PRODUCT == thread_num:
             crawl_lazada_image(product_list[i], driver)
 
     driver.quit()
@@ -421,7 +421,8 @@ def exact_embedding_from_link(link):
 def crawl_shopee_image(product, driver):
     driver.get(product.link)
     try_times = 0
-    clicked = False
+    crawled = True
+    len_old = 0
     # try again if cannot find element to click to open image menu
     while try_times < 10:
         try:
@@ -429,7 +430,6 @@ def crawl_shopee_image(product, driver):
                 EC.element_to_be_clickable((By.CSS_SELECTOR, "div.MZ9yDd ")))
             image_menu.click()
             break
-            clicked = True
         except Exception as e:
             # print("check", e)
             time.sleep(1)
@@ -439,10 +439,8 @@ def crawl_shopee_image(product, driver):
     while try_times < 10:
         
         try:
-            WebDriverWait(driver, 1).until(
+            WebDriverWait(driver, 10).until(
                 EC.presence_of_element_located((By.CSS_SELECTOR, ".rNteT0 div")))
-            # try_times = 10
-            # print("find it")
         except Exception as e:
             # print(e)
             try_times += 1
@@ -452,7 +450,8 @@ def crawl_shopee_image(product, driver):
         soup = BeautifulSoup(content, "html.parser")
         all_soup = soup.find_all('div', attrs={"class": "y4F+fJ rNteT0"})
         len_new = len(all_soup)
-        if len_new == 0:
+        if len_new == 0 or len_new != len_old:
+            len_old = len_new
             time.sleep(1)
         else:
             try:
@@ -462,10 +461,12 @@ def crawl_shopee_image(product, driver):
                     image_link = re.findall("url\(\"(.+)\"\)", image_link)[0]
                 break
             except:
+                # print(try_times)
+                time.sleep(1)
                 pass
  
-    content = driver.page_source
-    soup = BeautifulSoup(content, "html.parser")
+    # content = driver.page_source
+    # soup = BeautifulSoup(content, "html.parser")
 
     # if len(soup.find_all('div', attrs={"class": "y4F+fJ rNteT0"})) == 0:
     #     raise exceptions.ValidationError(f"shopee cannot find image {product.name} {clicked}")
@@ -486,10 +487,11 @@ def crawl_shopee_image(product, driver):
 
         except Exception as e:
             print("craw image shopee product error", e)
+            crawled = False
             pass
-
-    product.crawled = True
-    product.save()
+    if crawled:
+        product.crawled = True
+        product.save()
 
 def get_not_crawl_products(product_list):
     ps = [product for product in product_list if product.crawled == False]
@@ -509,7 +511,7 @@ def crawl_shopee_image_multithread(product_list):
             l = len(products_not_crawled)
             if l == 0:
                 return
-            for thread_num in range(0, THREAD_NUMBER_IMAGE):
+            for thread_num in range(0, THREAD_QUANTITY_CRAWL_PRODUCT):
                 threads.append(PropagatingThread(
                     target=crawl_shopee_image_thread, args=(products_not_crawled, thread_num,)))
             for thread in threads:
@@ -529,7 +531,7 @@ def crawl_shopee_image_thread(product_list, thread_num):
 
         l = len(product_list)
         for i in range(l):
-            if i % THREAD_NUMBER_IMAGE == thread_num:
+            if i % THREAD_QUANTITY_CRAWL_PRODUCT == thread_num:
                 try:
                     crawl_shopee_image(product_list[i], driver)
                 except Exception as err:
