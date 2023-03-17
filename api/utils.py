@@ -31,7 +31,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 TRAINNED_MODEL = keras.models.load_model('D:\QuanVo\KLTN\models\output_kaggle tllds 245x200 out128 float ac66/checkpoint')
-THREAD_NUMBER_IMAGE = 2
+THREAD_NUMBER_IMAGE = 5
 THREAD_NUMBER_LINK_SOURCE = 1
 MODEL_OUTPUT_LENGTH = 130
 EXPIRE_INFO_DAYS = 3
@@ -45,7 +45,7 @@ otps.add_argument("--log-level=3")
 
 
 otps2 = webdriver.ChromeOptions()
-# otps2.add_argument('--headless')
+otps2.add_argument('--headless')
 otps2.add_argument("--disable-extensions")
 otps2.add_argument("--disable-logging")
 otps2.add_argument("--log-level=3")
