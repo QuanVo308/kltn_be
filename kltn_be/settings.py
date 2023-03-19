@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'api',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
@@ -52,6 +53,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
 ]
 
 ROOT_URLCONF = 'kltn_be.urls'
@@ -91,7 +94,7 @@ DATABASES = {
         'NAME': os.environ.get('KLTN_MONGODB_NAME'),
         "ENFORCE_SCHEMA": False,
         'CLIENT': {
-           'host': os.environ.get('KLTN_MONGODB_CONNECTION'),
+            'host': os.environ.get('KLTN_MONGODB_CONNECTION'),
         }
     }
 }
@@ -138,3 +141,14 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 UPLOADED_FILES_USE_URL = True
+
+# CORS_ALLOW_ALL_ORIGINS = True
+CORS_ORIGIN_WHITELIST = [
+    "http://localhost:3000",
+    "https://localhost:3000",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:3000",
+    "https://localhost:3000",
+]

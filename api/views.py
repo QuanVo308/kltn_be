@@ -192,6 +192,18 @@ class ProductTestView(viewsets.GenericViewSet,
     serializer_class = ProductTestSerializer
     pagination_class = None
 
+    @action(detail=False, methods=['get', 'post'])
+    def test(self, request):
+        return Response('test prododuct')
+
+    @action(detail=True, methods=['get'])
+    def get_image(self, request, pk):
+        image = ProductTest.objects.filter(id = pk)[0]
+        print(image.image_path)
+        img = open(image.image_path, 'rb')
+        response = FileResponse(img)
+        return response
+
     @action(detail=False, methods=['get'])
     def image_exaction(self, request):
 
@@ -238,6 +250,7 @@ class ProductTestView(viewsets.GenericViewSet,
 
     @action(detail=False, methods=['get', 'post'])
     def add_data_test(self, request):
+        ProductTest.objects.all().delete()
         base_dir = pathlib.Path(os.environ.get('TEST_DATASET'))
 
         for path in base_dir.glob("*"):
@@ -262,18 +275,17 @@ class ProductTestView(viewsets.GenericViewSet,
             if product == product_anchor:
                 continue
 
-            anchor_embedding = np.array(product_anchor.embedding_vector)
-            test_embedding = np.array(product.embedding_vector)
+            anchor_embedding = np.asarray(product_anchor.embedding_vector)
+            test_embedding = np.asarray(product.embedding_vector)
 
             # if anchor_embedding.shape != (1,MODEL_OUTPUT_LENGTH) or test_embedding.shape != (1,MODEL_OUTPUT_LENGTH):
             #     return Response(product.name)
-
             euclidean_distance = tf.math.reduce_euclidean_norm(anchor_embedding - test_embedding, axis=1).numpy()
             anchor_embedding = normalize(anchor_embedding, axis=1)
             test_embedding = normalize(test_embedding, axis=1)
             cosine_distance = cosine_similarity(anchor_embedding, test_embedding)
             all_distance.append(
-                {'name': product.name, 'cosine_distance': cosine_distance[0][0], 'euclidean_distance': euclidean_distance})
+                {'name': product.name, 'id': product.id, 'cosine_distance': cosine_distance[0][0], 'euclidean_distance': euclidean_distance})
 
         all_distance = sorted(
             all_distance, key=lambda d: d['cosine_distance'], reverse=True)

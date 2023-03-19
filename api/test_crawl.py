@@ -27,43 +27,40 @@ driver = webdriver.Chrome(
     "D:\Downloads\chromedriver_win32\chromedriver.exe", options=otps)
 # driver.maximize_window()
 # Navigate to the Lazada Vietnam website
-driver.get("https://shopee.vn/H%E1%BA%A1t-gi%E1%BB%91ng-th%E1%BB%A7y-sinh-c%C3%A2y-th%E1%BB%A7y-sinh-Tr%C3%A2n-Ch%C3%A2u-Ng%C6%B0u-Mao-Chi%C3%AAn-C%E1%BB%8F-T%C3%ACnh-Y%C3%AAu-D%E1%BB%85-Tr%E1%BB%93ng-Kh%C3%B4ng-Co2-i.118431449.4006720310?sp_atk=610fba44-5fe7-4042-ac46-49b229c98295&xptdk=610fba44-5fe7-4042-ac46-49b229c98295")
+driver.get("https://shopee.vn/-Balo-HOT-Balo-adidas-ph%E1%BA%A3n-quang-Balo-%C4%91i-h%E1%BB%8Dc-%C4%91i-ch%C6%A1i-xu-th%E1%BA%BF-2021-i.76158273.2490794473")
 
 try_times = 0
-clicked = False
+crawled = True
+len_old = 0
+# try again if cannot find element to click to open image menu
 while try_times < 10:
     try:
         image_menu = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.CSS_SELECTOR, "div.MZ9yDd ")))
         image_menu.click()
-        print('click')
         break
-        clicked = True
     except Exception as e:
         # print("check", e)
         time.sleep(1)
-        print('not click')
         try_times += 1
 
 try_times = 0
 while try_times < 10:
     
     try:
-        WebDriverWait(driver, 1).until(
+        WebDriverWait(driver, 5).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, ".rNteT0 div")))
-        # try_times = 10
-        print("find it")
     except Exception as e:
         # print(e)
-        print("not find it")
-        # try_times += 1
+        try_times += 1
 
     try_times += 1
     content = driver.page_source
     soup = BeautifulSoup(content, "html.parser")
     all_soup = soup.find_all('div', attrs={"class": "y4F+fJ rNteT0"})
     len_new = len(all_soup)
-    if len_new == 0:
+    if len_new == 0 or len_new != len_old:
+        len_old = len_new
         time.sleep(1)
     else:
         try:
@@ -73,9 +70,10 @@ while try_times < 10:
                 image_link = re.findall("url\(\"(.+)\"\)", image_link)[0]
             break
         except:
-            print(try_times)
+            # print(try_times)
+            time.sleep(1)
             pass
-
+print('done 1')
 content = driver.page_source
 soup = BeautifulSoup(content, "html.parser")
 

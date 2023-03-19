@@ -30,7 +30,7 @@ from io import BytesIO
 from dotenv import load_dotenv
 load_dotenv()
 
-TRAINNED_MODEL = keras.models.load_model(os.environ.get('TRAINNED_MODEL_PATH'))
+# TRAINNED_MODEL = keras.models.load_model(os.environ.get('TRAINNED_MODEL_PATH'))
 THREAD_QUANTITY_CRAWL_PRODUCT = int(os.environ.get('THREAD_QUANTITY_CRAWL_PRODUCT'))
 THREAD_NUMBER_LINK_SOURCE = int(os.environ.get('THREAD_QUANTITY_CRAWL_LINK_SOURCE'))
 MODEL_OUTPUT_LENGTH = int(os.environ.get('MODEL_OUTPUT_LENGTH'))
@@ -45,7 +45,7 @@ otps.add_argument("--log-level=3")
 
 
 otps2 = webdriver.ChromeOptions()
-otps2.add_argument('--headless')
+# otps2.add_argument('--headless')
 otps2.add_argument("--disable-extensions")
 otps2.add_argument("--disable-logging")
 otps2.add_argument("--log-level=3")
@@ -53,8 +53,8 @@ otps2.add_argument("--log-level=3")
 # webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=otps).quit()
 
 def load_models():
-    return TRAINNED_MODEL
-    # return keras.models.load_model('C:/Users/Quan/Documents/Temp/models/resnet18 64x64 output 150 margin1 acc74/checkpoint')
+    # return TRAINNED_MODEL
+    return keras.models.load_model(os.environ.get('TRAINNED_MODEL_PATH'))
 
 class PropagatingThread(Thread):
     def run(self):
@@ -434,12 +434,12 @@ def crawl_shopee_image(product, driver):
             # print("check", e)
             time.sleep(1)
             try_times += 1
-
+    # print(f'done 0 {product.name}')
     try_times = 0
     while try_times < 10:
         
         try:
-            WebDriverWait(driver, 10).until(
+            WebDriverWait(driver, 5).until(
                 EC.presence_of_element_located((By.CSS_SELECTOR, ".rNteT0 div")))
         except Exception as e:
             # print(e)
@@ -464,13 +464,8 @@ def crawl_shopee_image(product, driver):
                 # print(try_times)
                 time.sleep(1)
                 pass
- 
-    # content = driver.page_source
-    # soup = BeautifulSoup(content, "html.parser")
 
-    # if len(soup.find_all('div', attrs={"class": "y4F+fJ rNteT0"})) == 0:
-    #     raise exceptions.ValidationError(f"shopee cannot find image {product.name} {clicked}")
-    
+    # print(f'done 1 {product.name}')
     for a in soup.find_all('div', attrs={"class": "y4F+fJ rNteT0"}):
         try:
             image_link = a.find(
@@ -482,13 +477,16 @@ def crawl_shopee_image(product, driver):
             if check_update_expire(i):
                 i.link = f"{image_link}"
                 i.product = product
+                # print('exact')
                 i.embedding_vector = exact_embedding_from_link(i.link)
+                # print('exact done')
                 i.save()
 
         except Exception as e:
             print("craw image shopee product error", e)
             crawled = False
             pass
+    # print(f'done 2 {product.name}')
     if crawled:
         product.crawled = True
         product.save()
@@ -527,20 +525,24 @@ def crawl_shopee_image_multithread(product_list):
 def crawl_shopee_image_thread(product_list, thread_num):
     driver = webdriver.Chrome(service=Service(
         ChromeDriverManager().install()), options=otps2)
+    print(f'thread {thread_num}')
     try:
-
         l = len(product_list)
         for i in range(l):
             if i % THREAD_QUANTITY_CRAWL_PRODUCT == thread_num:
                 try:
+                    # print(f'product {i} {product_list[i].id}')
                     crawl_shopee_image(product_list[i], driver)
+                    # print(f'product {i} done')
                 except Exception as err:
                     print('shopee crawl image error', err)
+        driver.quit()
+
     except Exception as e:
         driver.quit()
         print('shopee multithread crawl image error', e)
-    driver.quit()
-
+    print(f'thread {thread_num} done')
+    
 
 def shopee_scroll_to_end(driver):
     height = driver.execute_script("return document.body.scrollHeight")
