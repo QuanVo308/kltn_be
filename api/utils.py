@@ -30,9 +30,11 @@ from io import BytesIO
 from dotenv import load_dotenv
 load_dotenv()
 
-# TRAINNED_MODEL = keras.models.load_model(os.environ.get('TRAINNED_MODEL_PATH'))
-THREAD_QUANTITY_CRAWL_PRODUCT = int(os.environ.get('THREAD_QUANTITY_CRAWL_PRODUCT'))
-THREAD_NUMBER_LINK_SOURCE = int(os.environ.get('THREAD_QUANTITY_CRAWL_LINK_SOURCE'))
+TRAINNED_MODEL = keras.models.load_model(os.environ.get('TRAINNED_MODEL_PATH'))
+THREAD_QUANTITY_CRAWL_PRODUCT = int(
+    os.environ.get('THREAD_QUANTITY_CRAWL_PRODUCT'))
+THREAD_NUMBER_LINK_SOURCE = int(
+    os.environ.get('THREAD_QUANTITY_CRAWL_LINK_SOURCE'))
 MODEL_OUTPUT_LENGTH = int(os.environ.get('MODEL_OUTPUT_LENGTH'))
 EXPIRE_INFO_DAYS = int(os.environ.get('EXPIRE_INFO_DAYS'))
 
@@ -52,9 +54,11 @@ otps2.add_argument("--log-level=3")
 
 # webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=otps).quit()
 
+
 def load_models():
-    # return TRAINNED_MODEL
-    return keras.models.load_model(os.environ.get('TRAINNED_MODEL_PATH'))
+    return TRAINNED_MODEL
+    # return keras.models.load_model(os.environ.get('TRAINNED_MODEL_PATH'))
+
 
 class PropagatingThread(Thread):
     def run(self):
@@ -88,6 +92,7 @@ def check_update_expire(instance):
     except Exception as e:
         return True
 
+
 def delete_all_product_multithread():
     products = Product.objects.all()
     quantity = len(products)
@@ -95,21 +100,20 @@ def delete_all_product_multithread():
     threads = []
     for thread_num in range(total_thread):
         threads.append(PropagatingThread(target=delete_product, args=(products[
-            int(quantity/total_thread * thread_num): 
+            int(quantity/total_thread * thread_num):
             int(quantity/total_thread * (thread_num + 1))
-            ],)))
-    
+        ],)))
+
     for thread in threads:
         thread.start()
     for thread in threads:
         thread.join()
 
+
 def delete_product(products):
     for idx, product in enumerate(products):
         # print(product.id, f'{idx}/{len(products)}')
         product.delete()
-
-
 
 
 def crawl_lazada_categories():
@@ -168,7 +172,7 @@ def crawl_shopee_categories():
             source.save()
 
         driver.quit()
-    
+
     except Exception as e:
         print(e)
         driver.quit()
@@ -372,7 +376,8 @@ def crawl_shopee_all():
     while try_time >= 0:
         try:
             try_time -= 1
-            sources = SourceData.objects.filter(platform='Shopee', crawled__in=[False])
+            sources = SourceData.objects.filter(
+                platform='Shopee', crawled__in=[False])
             threads = []
             # distribute source for threads
             for thread_num in range(0, THREAD_NUMBER_LINK_SOURCE):
@@ -383,13 +388,12 @@ def crawl_shopee_all():
             for thread in threads:
                 thread.join()
 
-            sources = SourceData.objects.filter(platform='Shopee', crawled__in=[False])
+            sources = SourceData.objects.filter(
+                platform='Shopee', crawled__in=[False])
             if len(sources) == 0:
                 return
         except Exception as e:
             print("crawl shopee all error ", e)
-
-
 
 
 def crawl_shopee_page_multithread(sources, thread_num):
@@ -410,13 +414,16 @@ def crawl_shopee_page_multithread(sources, thread_num):
         driver.quit()
         print('shopee multithread crawl page error', err_374)
 
+
 def exact_embedding_from_link(link):
     response = requests.get(link)
     image = PIL.Image.open(BytesIO(response.content))
     image = image.resize(size=(200, 245))
     image_arr = np.asarray(image)/255.
-    embedding_vector = load_models().predict(np.stack([image_arr]), verbose=0).tolist()
+    embedding_vector = load_models().predict(
+        np.stack([image_arr]), verbose=0).tolist()
     return embedding_vector
+
 
 def crawl_shopee_image(product, driver):
     driver.get(product.link)
@@ -427,7 +434,7 @@ def crawl_shopee_image(product, driver):
     while try_times < 10:
         try:
             image_menu = WebDriverWait(driver, 10).until(
-                EC.element_to_be_clickable((By.CSS_SELECTOR, "div.MZ9yDd ")))
+                EC.element_to_be_clickable((By.CSS_SELECTOR, "div.MZ9yDd:nth-of-type(2)")))
             image_menu.click()
             break
         except Exception as e:
@@ -437,7 +444,7 @@ def crawl_shopee_image(product, driver):
     # print(f'done 0 {product.name}')
     try_times = 0
     while try_times < 10:
-        
+
         try:
             WebDriverWait(driver, 5).until(
                 EC.presence_of_element_located((By.CSS_SELECTOR, ".rNteT0 div")))
@@ -457,7 +464,7 @@ def crawl_shopee_image(product, driver):
             try:
                 for a in all_soup:
                     image_link = a.find(
-                    'div', attrs={"class": "A4dsoy uno8xj"})['style']
+                        'div', attrs={"class": "A4dsoy uno8xj"})['style']
                     image_link = re.findall("url\(\"(.+)\"\)", image_link)[0]
                 break
             except:
@@ -491,18 +498,20 @@ def crawl_shopee_image(product, driver):
         product.crawled = True
         product.save()
 
+
 def get_not_crawl_products(product_list):
     ps = [product for product in product_list if product.crawled == False]
     return ps
-    
+
+
 def crawl_shopee_image_multithread(product_list):
     try_time = 5
     while try_time >= 0:
         products_not_crawled = get_not_crawl_products(product_list)
         if len(products_not_crawled) == 0:
             return
-        
-        try_time-=1
+
+        try_time -= 1
 
         try:
             threads = []
@@ -535,14 +544,17 @@ def crawl_shopee_image_thread(product_list, thread_num):
                     crawl_shopee_image(product_list[i], driver)
                     # print(f'product {i} done')
                 except Exception as err:
-                    print('shopee crawl image error', err)
+                    print('shopee crawl image error thread', thread_num,   err)
+                    driver.quit()
+                    driver = webdriver.Chrome(service=Service(
+                        ChromeDriverManager().install()), options=otps2)
         driver.quit()
 
     except Exception as e:
         driver.quit()
         print('shopee multithread crawl image error', e)
     print(f'thread {thread_num} done')
-    
+
 
 def shopee_scroll_to_end(driver):
     height = driver.execute_script("return document.body.scrollHeight")
@@ -614,7 +626,7 @@ def crawl_shopee_page(source, driver):
                     except Exception as e1:
                         failed = True
                         print("shopee crawl page find element", e1)
-                    
+
                 if not failed:
                     break
 
