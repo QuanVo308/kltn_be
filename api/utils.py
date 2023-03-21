@@ -506,6 +506,7 @@ def get_not_crawl_products(product_list):
     ps = [product for product in product_list if product.crawled == False]
     return ps
 
+
 def exact_embedding_vector(product_list):
     try:
         print('loading model')
@@ -519,11 +520,11 @@ def exact_embedding_vector(product_list):
             thread.start()
         for thread in threads:
             thread.join()
-                
-       
+
     except Exception as e:
         print("shopee exact_embedding_vector error", e)
         pass
+
 
 def exact_embedding_vector_thread(product_list, thread_num, model):
     for i in range(len(product_list)):
@@ -532,11 +533,12 @@ def exact_embedding_vector_thread(product_list, thread_num, model):
             for image in product.images.all():
                 if image.embedding_vector == []:
                     try:
-                        image.embedding_vector = exact_embedding_from_link(image.link, model)
-                        print('image calculated')
+                        image.embedding_vector = exact_embedding_from_link(
+                            image.link, model)
+                        # print('image calculated')
                         image.save()
                     except:
-                        print("image deleted")
+                        # print("image deleted")
                         image.delete()
 
 
