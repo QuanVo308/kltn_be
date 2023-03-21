@@ -30,7 +30,7 @@ from io import BytesIO
 from dotenv import load_dotenv
 load_dotenv()
 
-TRAINNED_MODEL = keras.models.load_model(os.environ.get('TRAINNED_MODEL_PATH'))
+# TRAINNED_MODEL = keras.models.load_model(os.environ.get('TRAINNED_MODEL_PATH'))
 THREAD_QUANTITY_CRAWL_PRODUCT = int(
     os.environ.get('THREAD_QUANTITY_CRAWL_PRODUCT'))
 THREAD_NUMBER_LINK_SOURCE = int(
@@ -56,8 +56,8 @@ otps2.add_argument("--log-level=3")
 
 
 def load_models():
-    return TRAINNED_MODEL
-    # return keras.models.load_model(os.environ.get('TRAINNED_MODEL_PATH'))
+    # return TRAINNED_MODEL
+    return keras.models.load_model(os.environ.get('TRAINNED_MODEL_PATH'))
 
 
 class PropagatingThread(Thread):
@@ -415,14 +415,17 @@ def crawl_shopee_page_multithread(sources, thread_num):
         print('shopee multithread crawl page error', err_374)
 
 
-def exact_embedding_from_link(link):
-    response = requests.get(link)
-    image = PIL.Image.open(BytesIO(response.content))
-    image = image.resize(size=(200, 245))
-    image_arr = np.asarray(image)/255.
-    embedding_vector = load_models().predict(
-        np.stack([image_arr]), verbose=0).tolist()
-    return embedding_vector
+def exact_embedding_from_link(link, model):
+    try:
+        response = requests.get(link, timeout=3)
+        image = PIL.Image.open(BytesIO(response.content))
+        image = image.resize(size=(200, 245))
+        image_arr = np.asarray(image)/255.
+        embedding_vector = model.predict(
+            np.stack([image_arr]), verbose=0).tolist()
+        return embedding_vector
+    except:
+        return []
 
 
 def crawl_shopee_image(product, driver):
@@ -433,8 +436,8 @@ def crawl_shopee_image(product, driver):
     # try again if cannot find element to click to open image menu
     while try_times < 10:
         try:
-            image_menu = WebDriverWait(driver, 10).until(
-                EC.element_to_be_clickable((By.CSS_SELECTOR, "div.MZ9yDd:nth-of-type(2)")))
+            image_menu = WebDriverWait(driver, 3).until(
+                EC.element_to_be_clickable((By.CSS_SELECTOR, f"div.MZ9yDd:nth-of-type({2 if try_times < 7 else 1})")))
             image_menu.click()
             break
         except Exception as e:
@@ -485,7 +488,7 @@ def crawl_shopee_image(product, driver):
                 i.link = f"{image_link}"
                 i.product = product
                 # print('exact')
-                i.embedding_vector = exact_embedding_from_link(i.link)
+                # i.embedding_vector = exact_embedding_from_link(i.link)
                 # print('exact done')
                 i.save()
 
@@ -502,6 +505,39 @@ def crawl_shopee_image(product, driver):
 def get_not_crawl_products(product_list):
     ps = [product for product in product_list if product.crawled == False]
     return ps
+
+def exact_embedding_vector(product_list):
+    try:
+        print('loading model')
+        model = load_models()
+        print('exacting embedding vector')
+        threads = []
+        for thread_num in range(0, (THREAD_QUANTITY_CRAWL_PRODUCT * 2)):
+            threads.append(PropagatingThread(
+                target=exact_embedding_vector_thread, args=(product_list, thread_num, model,)))
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join()
+                
+       
+    except Exception as e:
+        print("shopee exact_embedding_vector error", e)
+        pass
+
+def exact_embedding_vector_thread(product_list, thread_num, model):
+    for i in range(len(product_list)):
+        if i % (THREAD_QUANTITY_CRAWL_PRODUCT * 2) == thread_num:
+            product = product_list[i]
+            for image in product.images.all():
+                if image.embedding_vector == []:
+                    try:
+                        image.embedding_vector = exact_embedding_from_link(image.link, model)
+                        print('image calculated')
+                        image.save()
+                    except:
+                        print("image deleted")
+                        image.delete()
 
 
 def crawl_shopee_image_multithread(product_list):
@@ -530,6 +566,8 @@ def crawl_shopee_image_multithread(product_list):
             print("shopee crawl image error", e)
             pass
 
+        exact_embedding_vector(product_list)
+
 
 def crawl_shopee_image_thread(product_list, thread_num):
     driver = webdriver.Chrome(service=Service(
@@ -540,9 +578,7 @@ def crawl_shopee_image_thread(product_list, thread_num):
         for i in range(l):
             if i % THREAD_QUANTITY_CRAWL_PRODUCT == thread_num:
                 try:
-                    # print(f'product {i} {product_list[i].id}')
                     crawl_shopee_image(product_list[i], driver)
-                    # print(f'product {i} done')
                 except Exception as err:
                     print('shopee crawl image error thread', thread_num,   err)
                     driver.quit()

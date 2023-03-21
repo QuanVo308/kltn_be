@@ -23,13 +23,18 @@ class ProductView(viewsets.GenericViewSet,
 
     @action(detail=False, methods=['get', 'post'])
     def test(self, request):
-        print(unquote(request.data['link']).split('?')[0])
-        products = Product.objects.filter(
-            link=unquote(request.data['link']).split('?')[0])
-        # sources = sources.filter(platform='Shopee', crawled=False)
-
-        print(len(products))
-        print(products[0])
+        product = Product.objects.all()[23]
+        print(product.images.all())
+        for i in product.images.all():
+            print(i.id)
+        # i = Image.objects.filter(link="test")[0]
+        # print(i.id)
+        # print(i.embedding_vector)
+        # if i.embedding_vector == []:
+        #     print(True)
+        # i.link = 'test'
+        # i.product = product[23]
+        # i.save()
         return Response('test')
 
     @action(detail=False, methods=['get', 'post'])
@@ -173,8 +178,8 @@ class ProductView(viewsets.GenericViewSet,
 
         # craw_lazada_all()
 
-        # delete_all_product_multithread()
-        # crawl_shopee_categories()
+        delete_all_product_multithread()
+        crawl_shopee_categories()
         crawl_shopee_all()
 
         end = timezone.now()
