@@ -47,7 +47,7 @@ otps.add_argument("--log-level=3")
 
 
 otps2 = webdriver.ChromeOptions()
-# otps2.add_argument('--headless')
+otps2.add_argument('--headless')
 otps2.add_argument("--disable-extensions")
 otps2.add_argument("--disable-logging")
 otps2.add_argument("--log-level=3")
@@ -498,6 +498,8 @@ def crawl_shopee_image(product, driver):
             pass
     # print(f'done 2 {product.name}')
     if crawled:
+        category = soup.select(".dR8kXc a.akCPfg:last-of-type")
+        product.category, _ = Category.objects.get_or_create(name=unidecode(category[0].text).lower())
         product.crawled = True
         product.save()
 

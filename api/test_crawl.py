@@ -27,7 +27,7 @@ driver = webdriver.Chrome(
     "D:\Downloads\chromedriver_win32\chromedriver.exe", options=otps)
 # driver.maximize_window()
 # Navigate to the Lazada Vietnam website
-driver.get("https://shopee.vn/-Balo-HOT-Balo-adidas-ph%E1%BA%A3n-quang-Balo-%C4%91i-h%E1%BB%8Dc-%C4%91i-ch%C6%A1i-xu-th%E1%BA%BF-2021-i.76158273.2490794473")
+driver.get("https://shopee.vn/B%E1%BB%99t-n%E1%BB%95i-%E2%9A%A1-CH%E1%BA%A4T-L%C6%AF%E1%BB%A2NG-T%E1%BB%90T-NH%E1%BA%A4T-%E2%9A%A11-g%C3%B3i-b%E1%BB%99t-n%E1%BB%9F-baking-powder-alsa-gi%C3%BAp-l%C3%A0m-b%C3%A1nh-n%E1%BB%95i-m%E1%BB%81m-v%C3%A0-x%E1%BB%91p-h%C6%A1n-11g-i.13434354.439134753?sp_atk=8f683ae8-6730-4bc8-8dde-54ccfc1c6535&xptdk=8f683ae8-6730-4bc8-8dde-54ccfc1c6535")
 
 try_times = 0
 crawled = True
@@ -82,6 +82,8 @@ for a in soup.find_all('div', attrs={"class": "y4F+fJ rNteT0"}):
         image_link = a.find(
             'div', attrs={"class": "A4dsoy uno8xj"})['style']
         image_link = re.findall("url\(\"(.+)\"\)", image_link)[0]
+        category = soup.select(".dR8kXc a.akCPfg:last-of-type")
+        print(unidecode(category[0].text).lower())
         # images = Image.objects.filter(link=f"{image_link}")
 
         # i = Image() if len(images) == 0 else images[0]

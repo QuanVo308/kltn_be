@@ -23,18 +23,8 @@ class ProductView(viewsets.GenericViewSet,
 
     @action(detail=False, methods=['get', 'post'])
     def test(self, request):
-        product = Product.objects.all()[23]
-        print(product.images.all())
-        for i in product.images.all():
-            print(i.id)
-        # i = Image.objects.filter(link="test")[0]
-        # print(i.id)
-        # print(i.embedding_vector)
-        # if i.embedding_vector == []:
-        #     print(True)
-        # i.link = 'test'
-        # i.product = product[23]
-        # i.save()
+        category = Category.objects.get_or_create(name=request.data['name'])
+        print(category)
         return Response('test')
 
     @action(detail=False, methods=['get', 'post'])
@@ -51,9 +41,16 @@ class ProductView(viewsets.GenericViewSet,
         return Response('test')
 
     @action(detail=False, methods=['delete'])
-    def delete_all_prodcut(self, request):
+    def delete_all_product(self, request):
         delete_all_product_multithread()
         return Response('delete all product')
+    
+    @action(detail=False, methods=['delete'])
+    def delete_all_category(self, request):
+        categories = Category.objects.all()
+        for category in categories:
+            category.delete()
+        return Response('delete all category')
 
     @action(detail=False, methods=['get', 'post'])
     def get_similar_image(self, request):
