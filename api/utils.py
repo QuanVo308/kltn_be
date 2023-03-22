@@ -564,6 +564,7 @@ def exact_embedding_vector_thread(product_list, thread_num, model):
 def crawl_shopee_image_multithread(product_list):
     try_time = 5
     while try_time >= 0:
+        cleanup_webdriver()
         products_not_crawled = get_not_crawl_products(product_list)
         if len(products_not_crawled) == 0:
             return
