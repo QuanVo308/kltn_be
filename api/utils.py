@@ -27,6 +27,7 @@ import json
 import re
 import time
 from io import BytesIO
+import shutil
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -37,6 +38,7 @@ THREAD_NUMBER_LINK_SOURCE = int(
     os.environ.get('THREAD_QUANTITY_CRAWL_LINK_SOURCE'))
 MODEL_OUTPUT_LENGTH = int(os.environ.get('MODEL_OUTPUT_LENGTH'))
 EXPIRE_INFO_DAYS = int(os.environ.get('EXPIRE_INFO_DAYS'))
+
 
 
 otps = webdriver.ChromeOptions()
@@ -59,6 +61,15 @@ def load_models():
     # return TRAINNED_MODEL
     return keras.models.load_model(os.environ.get('TRAINNED_MODEL_PATH'))
 
+def cleanup_webdriver():
+    base_dir = pathlib.Path(os.environ.get('TRASH_TEMP_WEBDRIVER_PATH'))
+    count = 0
+
+    for path in base_dir.glob("scoped_dir*"):
+        count+=1
+        print(count ,str(path))
+        shutil.rmtree(str(path))
+    print(count)
 
 class PropagatingThread(Thread):
     def run(self):
@@ -370,7 +381,13 @@ def crawl_lazada_image(product, driver):
 
 def crawl_shopee_all():
     """
-    crawl everything of shopee source, product, image with multithread"""
+    crawl everything of shopee source, product, image with multithread
+    """
+    try:
+        cleanup_webdriver()
+    except Exception as ewd:
+        print("cleanup webdriver", ewd)
+        
     try_time = 3
     # try again if any error occur
     while try_time >= 0:
