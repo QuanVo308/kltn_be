@@ -110,7 +110,7 @@ def update_exact_image_multithread():
     images = Image.objects.filter(embedding_vector=[])
     print(len(images))
     quantity = len(images)
-    total_thread = os.cpu_count() * 8
+    total_thread = os.cpu_count()
     threads = []
     model = load_models()
     for thread_num in range(total_thread):
