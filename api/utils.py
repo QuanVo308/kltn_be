@@ -128,8 +128,11 @@ def update_exact_image_multithread():
 def exact_image_thread(images, model):
     for idx, image in enumerate(images):
         # print(image.id, f'{idx}/{len(images)}')
-        image.embedding_vector = exact_embedding_from_link(image.link, model)
-        image.save()
+        try:
+            image.embedding_vector = exact_embedding_from_link(image.link, model)
+            image.save()
+        except:
+            image.delete()
 
 
 def delete_all_product_multithread():
