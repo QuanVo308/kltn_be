@@ -175,6 +175,20 @@ class ProductView(viewsets.GenericViewSet,
         crawl_lazada_image_multithread(products)
         return Response("updated product have no image")
 
+class CategoryView(viewsets.GenericViewSet,
+                      mixins.CreateModelMixin,
+                      mixins.RetrieveModelMixin,
+                      mixins.UpdateModelMixin,
+                      #   mixins.DestroyModelMixin,
+                      mixins.ListModelMixin):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    pagination_class = None
+
+    @action(detail=False, methods=['get', 'post'])
+    def test(self, request):
+        return Response('test category')
+
 
 class ProductTestView(viewsets.GenericViewSet,
                       mixins.CreateModelMixin,

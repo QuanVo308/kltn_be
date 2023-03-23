@@ -5,6 +5,7 @@ from .views import *
 
 route = SimpleRouter()
 route.register(r'product', ProductView)
+route.register(r'category', CategoryView)
 route.register(r'product_test', ProductTestView)
 
 urlpatterns = [
