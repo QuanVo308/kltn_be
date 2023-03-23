@@ -124,6 +124,8 @@ def update_exact_image_multithread():
         thread.start()
     for thread in threads:
         thread.join()
+    
+    del model
 
 
 def exact_image_thread(images, model):
@@ -571,6 +573,7 @@ def exact_embedding_vector_product(product_list):
             thread.start()
         for thread in threads:
             thread.join()
+        del model
 
     except Exception as e:
         print("shopee exact_embedding_vector error", e)

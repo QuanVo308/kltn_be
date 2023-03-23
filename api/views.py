@@ -125,6 +125,7 @@ class ProductView(viewsets.GenericViewSet,
                 list_err.append(image_instance.id)
                 print(f'{image_instance.id}')
                 print(e)
+        del model
 
         return Response(list_err)
 
@@ -257,6 +258,7 @@ class ProductTestView(viewsets.GenericViewSet,
             embedding_vector = m.predict(np.stack([image_arr]), verbose=0)
             product.embedding_vector = embedding_vector.tolist()
             product.save()
+        del model
 
         return Response("ok")
 
@@ -280,6 +282,7 @@ class ProductTestView(viewsets.GenericViewSet,
             embedding_vector = m.predict(np.stack([image_arr]), verbose=0)
             product.embedding_vector = embedding_vector.tolist()
             product.save()
+        del model
 
         return Response("ok")
 
