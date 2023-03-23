@@ -28,6 +28,7 @@ import re
 import time
 from io import BytesIO
 import shutil
+import random
 from django.db.models import Q
 from dotenv import load_dotenv
 load_dotenv()
@@ -471,6 +472,7 @@ def exact_embedding_from_link(link, model):
         return embedding_vector
     except Exception as e:
         print('exacting image from link error', e)
+        raise exceptions.ValidationError('exacting image from link error')
         return []
 
 

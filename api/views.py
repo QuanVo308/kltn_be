@@ -189,6 +189,33 @@ class CategoryView(viewsets.GenericViewSet,
     def test(self, request):
         return Response('test category')
 
+    @action(detail=False, methods=['get'])
+    def get_random(self, request):
+        qs = Category.objects.all()
+        number = min(len(qs), int(request.GET['quantity']))
+        qs = list(qs)
+        random.shuffle(qs)
+        serializer = CategorySerializer(qs[:number], many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def search(self, request):
+        search = unidecode(request.GET['search']).lower()
+        search_words = search.split()
+        q = Q()
+        for word in search_words:
+            q &= Q(name__icontains = word)
+        qs = Category.objects.filter(q)
+        if len(qs) == 0:
+            return Response([])
+        
+        qs = list(qs)
+        number = min(len(qs), int(request.GET['quantity']))
+        random.shuffle(qs)
+        serializer = CategorySerializer(qs[:number], many=True)
+
+        return Response(serializer.data)
+
 
 class ProductTestView(viewsets.GenericViewSet,
                       mixins.CreateModelMixin,
