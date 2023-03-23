@@ -133,7 +133,7 @@ class ProductView(viewsets.GenericViewSet,
 
         update_exact_image_multithread()
 
-        return Response(list_err)
+        return Response('update image')
 
     @action(detail=False, methods=['get'])
     def product_update(self, request):
