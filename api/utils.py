@@ -28,6 +28,7 @@ import re
 import time
 from io import BytesIO
 import shutil
+import random
 from django.db.models import Q
 from dotenv import load_dotenv
 load_dotenv()
@@ -123,6 +124,8 @@ def update_exact_image_multithread():
         thread.start()
     for thread in threads:
         thread.join()
+    
+    del model
 
 
 def exact_image_thread(images, model):
@@ -471,6 +474,7 @@ def exact_embedding_from_link(link, model):
         return embedding_vector
     except Exception as e:
         print('exacting image from link error', e)
+        raise exceptions.ValidationError('exacting image from link error')
         return []
 
 
@@ -569,6 +573,7 @@ def exact_embedding_vector_product(product_list):
             thread.start()
         for thread in threads:
             thread.join()
+        del model
 
     except Exception as e:
         print("shopee exact_embedding_vector error", e)
