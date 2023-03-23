@@ -619,7 +619,7 @@ def crawl_shopee_image_multithread(product_list):
 def crawl_shopee_image_thread(product_list, thread_num):
     driver = webdriver.Chrome(service=Service(
         ChromeDriverManager().install()), options=otps2)
-    print(f'thread {thread_num}')
+    print(f'thread {thread_num} crawling image')
     try:
         l = len(product_list)
         for i in range(l):
@@ -636,7 +636,7 @@ def crawl_shopee_image_thread(product_list, thread_num):
     except Exception as e:
         driver.quit()
         print('shopee multithread crawl image error', e)
-    print(f'thread {thread_num} done')
+    print(f'thread {thread_num} crawling image done')
 
 
 def shopee_scroll_to_end(driver):
@@ -714,8 +714,9 @@ def crawl_shopee_page(source, driver):
         except Exception as err:
             print(f'shopee crawl page error {link}', err)
             pass
-
-        crawl_shopee_image_multithread(product_list)
+        
+        if same == 0:
+            crawl_shopee_image_multithread(product_list)
 
         try:
             next_page = WebDriverWait(driver, 10).until(EC.presence_of_element_located(
