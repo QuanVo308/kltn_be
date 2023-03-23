@@ -41,7 +41,6 @@ MODEL_OUTPUT_LENGTH = int(os.environ.get('MODEL_OUTPUT_LENGTH'))
 EXPIRE_INFO_DAYS = int(os.environ.get('EXPIRE_INFO_DAYS'))
 
 
-
 otps = webdriver.ChromeOptions()
 # otps.add_argument('--headless')
 otps.add_argument("--disable-extensions")
@@ -62,15 +61,17 @@ def load_models():
     # return TRAINNED_MODEL
     return keras.models.load_model(os.environ.get('TRAINNED_MODEL_PATH'))
 
+
 def cleanup_webdriver():
     base_dir = pathlib.Path(os.environ.get('TRASH_TEMP_WEBDRIVER_PATH'))
     count = 0
 
     for path in base_dir.glob("scoped_dir*"):
-        count+=1
-        print(count ,str(path))
+        count += 1
+        print(count, str(path))
         shutil.rmtree(str(path))
     print(count)
+
 
 class PropagatingThread(Thread):
     def run(self):
@@ -103,6 +104,32 @@ def check_update_expire(instance):
         return False
     except Exception as e:
         return True
+
+
+def update_exact_image_multithread():
+    images = Image.objects.filter(embedding_vector=[])
+    print(len(images))
+    quantity = len(images)
+    total_thread = os.cpu_count() * 8
+    threads = []
+    model = load_models()
+    for thread_num in range(total_thread):
+        threads.append(PropagatingThread(target=exact_image_thread, args=(images[
+            int(quantity/total_thread * thread_num):
+            int(quantity/total_thread * (thread_num + 1))
+        ], model,)))
+
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+
+
+def exact_image_thread(images, model):
+    for idx, image in enumerate(images):
+        print(image.id, f'{idx}/{len(images)}')
+        image.embedding_vector = exact_embedding_from_link(image.link, model)
+        image.save()
 
 
 def delete_all_product_multithread():
@@ -384,7 +411,7 @@ def crawl_shopee_all():
     """
     crawl everything of shopee source, product, image with multithread
     """
-        
+
     try_time = 3
     # try again if any error occur
     while try_time >= 0:
@@ -513,7 +540,8 @@ def crawl_shopee_image(product, driver):
     # print(f'done 2 {product.name}')
     if crawled:
         category = soup.select(".dR8kXc a.akCPfg:last-of-type")
-        product.category, _ = Category.objects.get_or_create(name=unidecode(category[0].text).lower())
+        product.category, _ = Category.objects.get_or_create(
+            name=unidecode(category[0].text).lower())
         product.crawled = True
         product.save()
 
@@ -523,7 +551,7 @@ def get_not_crawl_products(product_list):
     return ps
 
 
-def exact_embedding_vector(product_list):
+def exact_embedding_vector_product(product_list):
     try:
         print('loading model')
         model = load_models()
@@ -585,7 +613,7 @@ def crawl_shopee_image_multithread(product_list):
             print("shopee crawl image error", e)
             pass
 
-        exact_embedding_vector(product_list)
+        exact_embedding_vector_product(product_list)
 
 
 def crawl_shopee_image_thread(product_list, thread_num):

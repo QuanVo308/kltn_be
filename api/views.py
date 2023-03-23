@@ -31,7 +31,7 @@ class ProductView(viewsets.GenericViewSet,
     def test_product_exist(self, request):
         print(unquote(request.data['link']).split('?')[0])
         print(unidecode(request.data['name']))
-        query = Q(link__icontains = unquote(request.data['link']).split('?')[0])
+        query = Q(link__icontains=unquote(request.data['link']).split('?')[0])
         query |= Q(name__icontains=unidecode(request.data['name']))
         # products = Product.objects.filter(link = unquote(request.data['link']).split('?')[0])
         products = Product.objects.filter(query)
@@ -49,7 +49,7 @@ class ProductView(viewsets.GenericViewSet,
     def delete_all_product(self, request):
         delete_all_product_multithread()
         return Response('delete all product')
-    
+
     @action(detail=False, methods=['delete'])
     def delete_all_category(self, request):
         categories = Category.objects.all()
@@ -131,36 +131,7 @@ class ProductView(viewsets.GenericViewSet,
     @action(detail=False, methods=['get'])
     def image_exaction_update(self, request):
 
-        print('loading model')
-        m = load_models()
-        list_err = []
-        images = Image.objects.all()
-        for image_instance in images:
-            try:
-                if len(image_instance.embedding_vector) == 1:
-                    continue
-            except:
-                pass
-            try:
-
-                response = requests.get(image_instance.link)
-                # print(f'dowlonaded image {image_instance.product.name}')
-                image = PIL.Image.open(BytesIO(response.content))
-                image = image.convert('RGB')
-                image = image.resize(size=(200, 245))
-                image_arr = np.asarray(image)/255.
-                embedding_vector = m.predict(np.stack([image_arr]), verbose=0)
-                image_instance.embedding_vector = embedding_vector.tolist()
-                image_instance.save()
-                # print('\n')
-            except Exception as e:
-                list_err.append(image_instance.id)
-                print(f'{image_instance.id}')
-                print(e)
-
-        with open("example2.txt", "w", encoding="utf-8") as f:
-            for i in list_err:
-                f.writelines(f"{i} \n")
+        update_exact_image_multithread()
 
         return Response(list_err)
 
