@@ -31,13 +31,18 @@ class ProductView(viewsets.GenericViewSet,
     def test_product_exist(self, request):
         print(unquote(request.data['link']).split('?')[0])
         print(unidecode(request.data['name']))
+        query = Q(link__icontains = unquote(request.data['link']).split('?')[0])
+        query |= Q(name__icontains=unidecode(request.data['name']))
         # products = Product.objects.filter(link = unquote(request.data['link']).split('?')[0])
-        products = Product.objects.filter(
-            name__icontains=unidecode(request.data['name']))
+        products = Product.objects.filter(query)
+
         # sources = sources.filter(platform='Shopee', crawled=False)
 
         print(len(products))
-        print(products[0])
+        if len(products) != 0:
+            print(products[0])
+        else:
+            print("cannot find any product")
         return Response('test')
 
     @action(detail=False, methods=['delete'])

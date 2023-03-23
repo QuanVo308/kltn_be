@@ -28,6 +28,7 @@ import re
 import time
 from io import BytesIO
 import shutil
+from django.db.models import Q
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -383,10 +384,6 @@ def crawl_shopee_all():
     """
     crawl everything of shopee source, product, image with multithread
     """
-    try:
-        cleanup_webdriver()
-    except Exception as ewd:
-        print("cleanup webdriver", ewd)
         
     try_time = 3
     # try again if any error occur
@@ -634,16 +631,18 @@ def crawl_shopee_page(source, driver):
     same = 0
     product_list = []
     try:
+        print("crawling", link)
         driver.get(link)
 
     except Exception as e_481:
         print("crawl shopee page 0 error", e_481)
 
-    while same <= 5:
+    while same <= 6:
 
         try:
             shopee_scroll_to_end(driver)
             try_time = 3
+            same += 1
             while try_time >= 0:
 
                 try_time -= 1
@@ -653,7 +652,6 @@ def crawl_shopee_page(source, driver):
                 print(driver.current_url)
                 soup = BeautifulSoup(content, "html.parser")
                 product_list = []
-                same += 1
                 for a in soup.find_all('div', attrs={"class": "col-xs-2-4 shopee-search-item-result__item"}):
                     try:
                         product_price = a.find(
@@ -668,9 +666,6 @@ def crawl_shopee_page(source, driver):
 
                         p = Product() if len(products) == 0 else products[0]
 
-                        # new_key_words = [kw for kw in key_words if kw not in p.key_words]
-
-                        # if check_update_expire(p) or len(new_key_words) != 0:
                         if check_update_expire(p):
                             p.link = f"https://shopee.vn{product_link}"
                             p.name = unidecode(product_name)
