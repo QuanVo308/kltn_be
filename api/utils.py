@@ -127,7 +127,7 @@ def update_exact_image_multithread():
 
 def exact_image_thread(images, model):
     for idx, image in enumerate(images):
-        print(image.id, f'{idx}/{len(images)}')
+        # print(image.id, f'{idx}/{len(images)}')
         image.embedding_vector = exact_embedding_from_link(image.link, model)
         image.save()
 
@@ -444,13 +444,14 @@ def crawl_shopee_page_multithread(sources, thread_num):
     # sources = sources[:2]
 
     try:
-        driver = webdriver.Chrome(service=Service(
-            ChromeDriverManager().install()), options=otps)
         source_quantity = len(sources)
         for i in range(source_quantity):
             if i % THREAD_NUMBER_LINK_SOURCE == thread_num:
+                driver = webdriver.Chrome(service=Service(
+                    ChromeDriverManager().install()), options=otps)
                 crawl_shopee_page(sources[i], driver)
-        driver.quit()
+                driver.quit()
+
     except Exception as err_374:
         driver.quit()
         print('shopee multithread crawl page error', err_374)
@@ -465,7 +466,8 @@ def exact_embedding_from_link(link, model):
         embedding_vector = model.predict(
             np.stack([image_arr]), verbose=0).tolist()
         return embedding_vector
-    except:
+    except Exception as e:
+        print('exacting image from link error', e)
         return []
 
 
@@ -656,7 +658,7 @@ def shopee_scroll_to_end(driver):
 
 def crawl_shopee_page(source, driver):
     link = source.link
-    # driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=otp)
+    # driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=otps)
     same = 0
     product_list = []
     try:
@@ -714,7 +716,7 @@ def crawl_shopee_page(source, driver):
         except Exception as err:
             print(f'shopee crawl page error {link}', err)
             pass
-        
+
         if same == 0:
             crawl_shopee_image_multithread(product_list)
 
