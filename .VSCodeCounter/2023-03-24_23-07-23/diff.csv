@@ -1,0 +1,11 @@
+"filename", "language", "pip requirements", "Python", "comment", "blank", "total"
+"c:\Users\Quan\Documents\Temp\kltn_be\kltn_be\__init__.py", "Python", 0, 0, 0, 1, 1
+"c:\Users\Quan\Documents\Temp\kltn_be\kltn_be\asgi.py", "Python", 0, 4, 8, 5, 17
+"c:\Users\Quan\Documents\Temp\kltn_be\kltn_be\exceptions.py", "Python", 0, 37, 0, 3, 40
+"c:\Users\Quan\Documents\Temp\kltn_be\kltn_be\models.py", "Python", 0, 11, 12, 8, 31
+"c:\Users\Quan\Documents\Temp\kltn_be\kltn_be\settings.py", "Python", 0, 88, 55, 38, 181
+"c:\Users\Quan\Documents\Temp\kltn_be\kltn_be\urls.py", "Python", 0, 6, 15, 2, 23
+"c:\Users\Quan\Documents\Temp\kltn_be\kltn_be\wsgi.py", "Python", 0, 4, 8, 5, 17
+"c:\Users\Quan\Documents\Temp\kltn_be\manage.py", "Python", 0, 15, 3, 5, 23
+"c:\Users\Quan\Documents\Temp\kltn_be\requirements.txt", "pip requirements", 303, 0, 0, 0, 303
+"Total", "-", 303, 165, 101, 67, 636

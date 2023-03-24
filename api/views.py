@@ -23,8 +23,8 @@ class ProductView(viewsets.GenericViewSet,
 
     @action(detail=False, methods=['get', 'post'])
     def test(self, request):
-        category = Category.objects.get_or_create(name=request.data['name'])
-        print(category)
+        # category = Category.objects.get_or_create(name=request.data['name'])
+        # print(category)
         return Response('test')
 
     @action(detail=False, methods=['get', 'post'])
@@ -105,7 +105,7 @@ class ProductView(viewsets.GenericViewSet,
         # t = PIL.Image.open(BytesIO(response.content))
 
         print('loading model')
-        m = load_models()
+        # m = load_models()
         list_err = []
         images = Image.objects.all()
         for image_instance in images:
@@ -117,7 +117,7 @@ class ProductView(viewsets.GenericViewSet,
                 image = image.convert('RGB')
                 image = image.resize(size=(200, 245))
                 image_arr = np.asarray(image)/255.
-                embedding_vector = m.predict(np.stack([image_arr]), verbose=0)
+                embedding_vector = TRAINNED_MODEL.predict(np.stack([image_arr]), verbose=0)
                 image_instance.embedding_vector = embedding_vector.tolist()
                 image_instance.save()
                 # print('\n')
@@ -153,8 +153,8 @@ class ProductView(viewsets.GenericViewSet,
 
         # craw_lazada_all()
 
-        delete_all_product_multithread()
-        crawl_shopee_categories()
+        # delete_all_product_multithread()
+        # crawl_shopee_categories()
         crawl_shopee_all()
 
         end = timezone.now()
@@ -247,7 +247,7 @@ class ProductTestView(viewsets.GenericViewSet,
         # t = PIL.Image.open(BytesIO(response.content))
 
         print('loading model')
-        m = load_models()
+        # m = load_models()
 
         products = ProductTest.objects.all()
         for product in products:
@@ -255,7 +255,7 @@ class ProductTestView(viewsets.GenericViewSet,
             image = PIL.Image.open(pathlib.Path(product.image_path))
             image = image.resize(size=(200, 245))
             image_arr = np.asarray(image)/255.
-            embedding_vector = m.predict(np.stack([image_arr]), verbose=0)
+            embedding_vector = TRAINNED_MODEL.predict(np.stack([image_arr]), verbose=0)
             product.embedding_vector = embedding_vector.tolist()
             product.save()
         del model
@@ -269,7 +269,7 @@ class ProductTestView(viewsets.GenericViewSet,
         # t = PIL.Image.open(BytesIO(response.content))
 
         print('loading model')
-        m = load_models()
+        # m = load_models()
 
         products = ProductTest.objects.all()
         for product in products:
@@ -279,7 +279,7 @@ class ProductTestView(viewsets.GenericViewSet,
             image = PIL.Image.open(pathlib.Path(product.image_path))
             image = image.resize(size=(200, 245))
             image_arr = np.asarray(image)/255.
-            embedding_vector = m.predict(np.stack([image_arr]), verbose=0)
+            embedding_vector = TRAINNED_MODEL.predict(np.stack([image_arr]), verbose=0)
             product.embedding_vector = embedding_vector.tolist()
             product.save()
         del model

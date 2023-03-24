@@ -30,10 +30,11 @@ from io import BytesIO
 import shutil
 import random
 from django.db.models import Q
+import gc
 from dotenv import load_dotenv
 load_dotenv()
 
-# TRAINNED_MODEL = keras.models.load_model(os.environ.get('TRAINNED_MODEL_PATH'))
+TRAINNED_MODEL = keras.models.load_model(os.environ.get('TRAINNED_MODEL_PATH'))
 THREAD_QUANTITY_CRAWL_PRODUCT = int(
     os.environ.get('THREAD_QUANTITY_CRAWL_PRODUCT'))
 THREAD_NUMBER_LINK_SOURCE = int(
@@ -58,9 +59,9 @@ otps2.add_argument("--log-level=3")
 # webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=otps).quit()
 
 
-def load_models():
+# def load_models():
     # return TRAINNED_MODEL
-    return keras.models.load_model(os.environ.get('TRAINNED_MODEL_PATH'))
+    # return keras.models.load_model(os.environ.get('TRAINNED_MODEL_PATH'))
 
 
 def cleanup_webdriver():
@@ -113,26 +114,27 @@ def update_exact_image_multithread():
     quantity = len(images)
     total_thread = os.cpu_count()
     threads = []
-    model = load_models()
+    # model = load_models()
     for thread_num in range(total_thread):
         threads.append(PropagatingThread(target=exact_image_thread, args=(images[
             int(quantity/total_thread * thread_num):
             int(quantity/total_thread * (thread_num + 1))
-        ], model,)))
+        ],)))
 
     for thread in threads:
         thread.start()
     for thread in threads:
         thread.join()
     
-    del model
+    # del model
+    # gc.collect()
 
 
-def exact_image_thread(images, model):
+def exact_image_thread(images):
     for idx, image in enumerate(images):
         # print(image.id, f'{idx}/{len(images)}')
         try:
-            image.embedding_vector = exact_embedding_from_link(image.link, model)
+            image.embedding_vector = exact_embedding_from_link(image.link)
             image.save()
         except:
             image.delete()
@@ -463,16 +465,20 @@ def crawl_shopee_page_multithread(sources, thread_num):
         print('shopee multithread crawl page error', err_374)
 
 
-def exact_embedding_from_link(link, model):
+def exact_embedding_from_link(link):
     try:
         response = requests.get(link, timeout=3)
         image = PIL.Image.open(BytesIO(response.content))
         image = image.resize(size=(200, 245))
         image_arr = np.asarray(image)/255.
-        embedding_vector = model.predict(
+        embedding_vector = TRAINNED_MODEL.predict(
             np.stack([image_arr]), verbose=0).tolist()
+        gc.collect()
+        tf.keras.backend.clear_session()
         return embedding_vector
     except Exception as e:
+        gc.collect()
+        tf.keras.backend.clear_session()
         print('exacting image from link error', e)
         raise exceptions.ValidationError('exacting image from link error')
         return []
@@ -526,6 +532,7 @@ def crawl_shopee_image(product, driver):
                 pass
 
     # print(f'done 1 {product.name}')
+    fail = 0
     for a in soup.find_all('div', attrs={"class": "y4F+fJ rNteT0"}):
         try:
             image_link = a.find(
@@ -544,9 +551,14 @@ def crawl_shopee_image(product, driver):
 
         except Exception as e:
             print("craw image shopee product error", e)
-            crawled = False
+            
+            fail += 1
             pass
     # print(f'done 2 {product.name}')
+    if fail >= 3:
+        crawled = False
+        
+    gc.collect()
     if crawled:
         category = soup.select(".dR8kXc a.akCPfg:last-of-type")
         product.category, _ = Category.objects.get_or_create(
@@ -563,24 +575,25 @@ def get_not_crawl_products(product_list):
 def exact_embedding_vector_product(product_list):
     try:
         print('loading model')
-        model = load_models()
+        # model = load_models()
         print('exacting embedding vector')
         threads = []
         for thread_num in range(0, (THREAD_QUANTITY_CRAWL_PRODUCT * 2)):
             threads.append(PropagatingThread(
-                target=exact_embedding_vector_thread, args=(product_list, thread_num, model,)))
+                target=exact_embedding_vector_thread, args=(product_list, thread_num,)))
         for thread in threads:
             thread.start()
         for thread in threads:
             thread.join()
-        del model
+        # del model
+        # gc.collect()
 
     except Exception as e:
         print("shopee exact_embedding_vector error", e)
         pass
 
 
-def exact_embedding_vector_thread(product_list, thread_num, model):
+def exact_embedding_vector_thread(product_list, thread_num):
     for i in range(len(product_list)):
         if i % (THREAD_QUANTITY_CRAWL_PRODUCT * 2) == thread_num:
             product = product_list[i]
@@ -588,7 +601,7 @@ def exact_embedding_vector_thread(product_list, thread_num, model):
                 if image.embedding_vector == []:
                     try:
                         image.embedding_vector = exact_embedding_from_link(
-                            image.link, model)
+                            image.link)
                         # print('image calculated')
                         image.save()
                     except:
@@ -597,9 +610,8 @@ def exact_embedding_vector_thread(product_list, thread_num, model):
 
 
 def crawl_shopee_image_multithread(product_list):
-    try_time = 5
+    try_time = 3
     while try_time >= 0:
-        cleanup_webdriver()
         products_not_crawled = get_not_crawl_products(product_list)
         if len(products_not_crawled) == 0:
             return
@@ -639,9 +651,15 @@ def crawl_shopee_image_thread(product_list, thread_num):
                 except Exception as err:
                     print('shopee crawl image error thread', thread_num,   err)
                     driver.quit()
+                    try:
+                        cleanup_webdriver()
+                    except Exception as e:
+                        print(e)
+                        pass
                     driver = webdriver.Chrome(service=Service(
                         ChromeDriverManager().install()), options=otps2)
         driver.quit()
+        gc.collect()
 
     except Exception as e:
         driver.quit()
@@ -737,4 +755,5 @@ def crawl_shopee_page(source, driver):
             pass
     source.crawled = True
     source.save()
+    gc.collect()
     # driver.quit()

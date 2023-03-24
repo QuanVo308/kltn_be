@@ -1,0 +1,36 @@
+Date : 2023-03-24 23:07:23
+Directory : c:\Users\Quan\Documents\Temp\kltn_be
+Total : 9 files,  468 codes, 101 comments, 67 blanks, all 636 lines
+
+Languages
++------------------+------------+------------+------------+------------+------------+
+| language         | files      | code       | comment    | blank      | total      |
++------------------+------------+------------+------------+------------+------------+
+| pip requirements |          1 |        303 |          0 |          0 |        303 |
+| Python           |          8 |        165 |        101 |         67 |        333 |
++------------------+------------+------------+------------+------------+------------+
+
+Directories
++------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                       | files      | code       | comment    | blank      | total      |
++------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                          |          9 |        468 |        101 |         67 |        636 |
+| . (Files)                                                  |          2 |        318 |          3 |          5 |        326 |
+| kltn_be                                                    |          7 |        150 |         98 |         62 |        310 |
++------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++------------------------------------------------------------+------------------+------------+------------+------------+------------+
+| filename                                                   | language         | code       | comment    | blank      | total      |
++------------------------------------------------------------+------------------+------------+------------+------------+------------+
+| c:\Users\Quan\Documents\Temp\kltn_be\kltn_be\__init__.py   | Python           |          0 |          0 |          1 |          1 |
+| c:\Users\Quan\Documents\Temp\kltn_be\kltn_be\asgi.py       | Python           |          4 |          8 |          5 |         17 |
+| c:\Users\Quan\Documents\Temp\kltn_be\kltn_be\exceptions.py | Python           |         37 |          0 |          3 |         40 |
+| c:\Users\Quan\Documents\Temp\kltn_be\kltn_be\models.py     | Python           |         11 |         12 |          8 |         31 |
+| c:\Users\Quan\Documents\Temp\kltn_be\kltn_be\settings.py   | Python           |         88 |         55 |         38 |        181 |
+| c:\Users\Quan\Documents\Temp\kltn_be\kltn_be\urls.py       | Python           |          6 |         15 |          2 |         23 |
+| c:\Users\Quan\Documents\Temp\kltn_be\kltn_be\wsgi.py       | Python           |          4 |          8 |          5 |         17 |
+| c:\Users\Quan\Documents\Temp\kltn_be\manage.py             | Python           |         15 |          3 |          5 |         23 |
+| c:\Users\Quan\Documents\Temp\kltn_be\requirements.txt      | pip requirements |        303 |          0 |          0 |        303 |
+| Total                                                      |                  |        468 |        101 |         67 |        636 |
++------------------------------------------------------------+------------------+------------+------------+------------+------------+
