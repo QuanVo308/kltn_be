@@ -25,6 +25,7 @@ class ProductView(viewsets.GenericViewSet,
     def test(self, request):
         # category = Category.objects.get_or_create(name=request.data['name'])
         # print(category)
+        cleanup_category()
         return Response('test')
 
     @action(detail=False, methods=['get', 'post'])

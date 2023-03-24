@@ -65,6 +65,14 @@ otps2.add_argument("--log-level=3")
     # return keras.models.load_model(os.environ.get('TRAINNED_MODEL_PATH'))
 
 
+def cleanup_category():
+    print('clean up category')
+    categories = Category.objects.all()
+    for category in categories:
+        qs = Category.objects.filter(name = category.name)
+        if len(qs) > 1:
+            category.delete()
+
 def cleanup_webdriver():
     base_dir = pathlib.Path(os.environ.get('TRASH_TEMP_WEBDRIVER_PATH'))
     count = 0
@@ -615,6 +623,7 @@ def crawl_shopee_image_multithread(product_list):
     while try_time >= 0:
         try:
             cleanup_webdriver()
+            cleanup_category()
         except Exception as ewd:
             print("cleanup webdriver", ewd)
         products_not_crawled = get_not_crawl_products(product_list)
@@ -658,6 +667,7 @@ def crawl_shopee_image_thread(product_list, thread_num):
                     driver.quit()
                     try:
                         cleanup_webdriver()
+                        cleanup_category()
                     except Exception as e:
                         print(e)
                         pass
