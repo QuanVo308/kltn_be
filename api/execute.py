@@ -3,5 +3,6 @@ scheduler = BackgroundScheduler()
 
 from .scheduler_jobs import *
 
-scheduler.add_job(FirstCronTest, 'interval', seconds=5)
+scheduler.add_job(FirstCronTest, 'interval', seconds=1)
+scheduler.add_job(FirstCronTest2, 'interval', seconds=5)
 scheduler.start()

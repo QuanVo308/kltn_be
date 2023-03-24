@@ -12,4 +12,3 @@ urlpatterns = [
 
 ] + route.urls
 from .execute import *
-from .execute2 import *
