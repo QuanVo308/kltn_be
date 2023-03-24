@@ -120,7 +120,8 @@ class ProductView(viewsets.GenericViewSet,
                 image = image.convert('RGB')
                 image = image.resize(size=(200, 245))
                 image_arr = np.asarray(image)/255.
-                embedding_vector = TRAINNED_MODEL.predict(np.stack([image_arr]), verbose=0)
+                embedding_vector = TRAINNED_MODEL.predict(
+                    np.stack([image_arr]), verbose=0)
                 image_instance.embedding_vector = embedding_vector.tolist()
                 image_instance.save()
                 # print('\n')
@@ -149,21 +150,21 @@ class ProductView(viewsets.GenericViewSet,
             print(len(products))
             crawl_shopee_image_multithread(products)
         return Response('update product')
-    
+
     @action(detail=False, methods=['get'])
     def product_recrawl(self, request):
         product_list = []
         # Product.objects.filter(source_description__startswith="Shopee", crawled__in=[False])
         products = Product.objects.filter(
             source_description__startswith="Shopee", crawled__in=[True])
-            
+
         for product in products:
             if len(product.images.all()) <= 1:
                 product_list.append(product)
 
         if len(product_list) > 0:
             print(len(product_list))
-            crawl_shopee_image_multithread(product_list)
+            crawl_shopee_image_multithread(product_list, recrawl=True)
         return Response('update product')
 
     @action(detail=False, methods=['get'], url_path="crawl_all")
@@ -195,12 +196,13 @@ class ProductView(viewsets.GenericViewSet,
         crawl_lazada_image_multithread(products)
         return Response("updated product have no image")
 
+
 class CategoryView(viewsets.GenericViewSet,
-                      mixins.CreateModelMixin,
-                      mixins.RetrieveModelMixin,
-                      mixins.UpdateModelMixin,
-                      #   mixins.DestroyModelMixin,
-                      mixins.ListModelMixin):
+                   mixins.CreateModelMixin,
+                   mixins.RetrieveModelMixin,
+                   mixins.UpdateModelMixin,
+                   #   mixins.DestroyModelMixin,
+                   mixins.ListModelMixin):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     pagination_class = None
@@ -224,11 +226,11 @@ class CategoryView(viewsets.GenericViewSet,
         search_words = search.split()
         q = Q()
         for word in search_words:
-            q &= Q(name__icontains = word)
+            q &= Q(name__icontains=word)
         qs = Category.objects.filter(q)
         if len(qs) == 0:
             return Response([])
-        
+
         qs = list(qs)
         number = min(len(qs), int(request.GET['quantity']))
         random.shuffle(qs)
@@ -274,7 +276,8 @@ class ProductTestView(viewsets.GenericViewSet,
             image = PIL.Image.open(pathlib.Path(product.image_path))
             image = image.resize(size=(200, 245))
             image_arr = np.asarray(image)/255.
-            embedding_vector = TRAINNED_MODEL.predict(np.stack([image_arr]), verbose=0)
+            embedding_vector = TRAINNED_MODEL.predict(
+                np.stack([image_arr]), verbose=0)
             product.embedding_vector = embedding_vector.tolist()
             product.save()
         del model
@@ -298,7 +301,8 @@ class ProductTestView(viewsets.GenericViewSet,
             image = PIL.Image.open(pathlib.Path(product.image_path))
             image = image.resize(size=(200, 245))
             image_arr = np.asarray(image)/255.
-            embedding_vector = TRAINNED_MODEL.predict(np.stack([image_arr]), verbose=0)
+            embedding_vector = TRAINNED_MODEL.predict(
+                np.stack([image_arr]), verbose=0)
             product.embedding_vector = embedding_vector.tolist()
             product.save()
         del model

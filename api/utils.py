@@ -61,17 +61,18 @@ otps2.add_argument("--log-level=3")
 
 
 # def load_models():
-    # return TRAINNED_MODEL
-    # return keras.models.load_model(os.environ.get('TRAINNED_MODEL_PATH'))
+# return TRAINNED_MODEL
+# return keras.models.load_model(os.environ.get('TRAINNED_MODEL_PATH'))
 
 
 def cleanup_category():
     print('clean up category')
     categories = Category.objects.all()
     for category in categories:
-        qs = Category.objects.filter(name = category.name)
+        qs = Category.objects.filter(name=category.name)
         if len(qs) > 1:
             category.delete()
+
 
 def cleanup_webdriver():
     base_dir = pathlib.Path(os.environ.get('TRASH_TEMP_WEBDRIVER_PATH'))
@@ -134,7 +135,7 @@ def update_exact_image_multithread():
         thread.start()
     for thread in threads:
         thread.join()
-    
+
     # del model
     # gc.collect()
 
@@ -560,13 +561,13 @@ def crawl_shopee_image(product, driver):
 
         except Exception as e:
             print("craw image shopee product error", e)
-            
+
             fail += 1
             pass
     # print(f'done 2 {product.name}')
     if fail >= 3:
         crawled = False
-        
+
     gc.collect()
     if crawled:
         category = soup.select(".dR8kXc a.akCPfg:last-of-type")
@@ -618,7 +619,7 @@ def exact_embedding_vector_thread(product_list, thread_num):
                         image.delete()
 
 
-def crawl_shopee_image_multithread(product_list):
+def crawl_shopee_image_multithread(product_list, recrawl=False):
     try_time = 3
     while try_time >= 0:
         try:
@@ -626,7 +627,8 @@ def crawl_shopee_image_multithread(product_list):
             cleanup_category()
         except Exception as ewd:
             print("cleanup webdriver", ewd)
-        products_not_crawled = get_not_crawl_products(product_list)
+        products_not_crawled = get_not_crawl_products(
+            product_list) if not recrawl else product_list
         if len(products_not_crawled) == 0:
             return
 
