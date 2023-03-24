@@ -11,3 +11,5 @@ route.register(r'product_test', ProductTestView)
 urlpatterns = [
 
 ] + route.urls
+from .execute import *
+from .execute2 import *

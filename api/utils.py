@@ -34,7 +34,8 @@ import gc
 from dotenv import load_dotenv
 load_dotenv()
 
-TRAINNED_MODEL = keras.models.load_model(os.environ.get('TRAINNED_MODEL_PATH'))
+# TRAINNED_MODEL = keras.models.load_model(os.environ.get('TRAINNED_MODEL_PATH'))
+TRAINNED_MODEL = "haha"
 THREAD_QUANTITY_CRAWL_PRODUCT = int(
     os.environ.get('THREAD_QUANTITY_CRAWL_PRODUCT'))
 THREAD_NUMBER_LINK_SOURCE = int(
