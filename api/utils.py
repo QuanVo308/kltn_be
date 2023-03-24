@@ -619,8 +619,8 @@ def exact_embedding_vector_thread(product_list, thread_num):
                         image.delete()
 
 
-def crawl_shopee_image_multithread(product_list, recrawl=False):
-    try_time = 3
+def crawl_shopee_image_multithread(product_list, recrawl=False, try_time = 3):
+    # try_time = 3
     while try_time >= 0:
         try:
             cleanup_webdriver()
