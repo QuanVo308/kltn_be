@@ -155,4 +155,4 @@ CSRF_TRUSTED_ORIGINS = [
 
 ALLOWED_HOSTS = ["*"]
 
-DEBUG = False
+# DEBUG = False

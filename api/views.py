@@ -23,10 +23,12 @@ class ProductView(viewsets.GenericViewSet,
 
     @action(detail=False, methods=['get', 'post'])
     def test(self, request):
-        # category = Category.objects.get_or_create(name=request.data['name'])
-        # print(category)
-        cleanup_category()
-        return Response('test')
+        product = Product.objects.filter()[100]
+        # print(product.images.all())
+        # for image in product.images.all():
+        #     print(image.id, len(image.embedding_vector[0]))
+        serializer = ProductSerializer(product)
+        return Response(serializer.data)
 
     @action(detail=False, methods=['get', 'post'])
     def test_product_exist(self, request):
@@ -146,6 +148,20 @@ class ProductView(viewsets.GenericViewSet,
         if len(products) > 0:
             print(len(products))
             crawl_shopee_image_multithread(products)
+        return Response('update product')
+    
+    @action(detail=False, methods=['get'])
+    def product_recrawl(self, request):
+        product_list = []
+        # Product.objects.filter(source_description__startswith="Shopee", crawled__in=[False])
+        products = Product.objects.filter(
+            source_description__startswith="Shopee", crawled__in=[True])
+        if len(products) > 0:
+            print(len(products))
+            for product in products:
+                if len(product.images.all()) <= 1:
+                    product_list.append(product)
+            crawl_shopee_image_multithread(product_list)
         return Response('update product')
 
     @action(detail=False, methods=['get'], url_path="crawl_all")
