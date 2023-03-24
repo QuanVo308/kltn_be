@@ -156,11 +156,13 @@ class ProductView(viewsets.GenericViewSet,
         # Product.objects.filter(source_description__startswith="Shopee", crawled__in=[False])
         products = Product.objects.filter(
             source_description__startswith="Shopee", crawled__in=[True])
-        if len(products) > 0:
-            print(len(products))
-            for product in products:
-                if len(product.images.all()) <= 1:
-                    product_list.append(product)
+            
+        for product in products:
+            if len(product.images.all()) <= 1:
+                product_list.append(product)
+
+        if len(product_list) > 0:
+            print(len(product_list))
             crawl_shopee_image_multithread(product_list)
         return Response('update product')
 
