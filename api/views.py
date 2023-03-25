@@ -164,7 +164,12 @@ class ProductView(viewsets.GenericViewSet,
 
         if len(product_list) > 0:
             print(len(product_list))
-            crawl_shopee_image_multithread(product_list, recrawl=True, try_time=1)
+            n = 0
+            while True:
+                crawl_shopee_image_multithread(product_list[n:min(len(product_list), n + 60)], recrawl=True, try_time=1)
+                n+=60
+                if n >= len(product_list):
+                    break
         return Response('update product')
 
     @action(detail=False, methods=['get'], url_path="crawl_all")
