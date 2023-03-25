@@ -24,24 +24,24 @@ class ProductTestSerializer(serializers.ModelSerializer):
 class ImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Image
-        fields = '__all__'
+        fields = ['id', 'link']
 
 
 class ProductSerializer(serializers.ModelSerializer):
     name = serializers.CharField(required=True)
     price = serializers.CharField(required=False)
-    image_ids = SerializerMethodCustomField(read_only=True)
+    images = SerializerMethodCustomField(read_only=True)
 
     class Meta:
         model = Product
         fields = '__all__'
         depth = 1
     
-    def get_image_ids(self, obj):
-        ids = []
+    def get_images(self, obj):
+        images = []
         for image in obj.images.all():
-            ids.append(image.id)
-        return ids
+            images.append(ImageSerializer(image).data)
+        return images
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:

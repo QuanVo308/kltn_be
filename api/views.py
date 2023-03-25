@@ -159,7 +159,7 @@ class ProductView(viewsets.GenericViewSet,
             source_description__startswith="Shopee", crawled__in=[True])
 
         for product in products:
-            if len(product.images.all()) <= 1:
+            if len(product.images.all()) <= 0:
                 product_list.append(product)
 
         if len(product_list) > 0:
