@@ -197,7 +197,7 @@ class ProductView(viewsets.GenericViewSet,
 
     @action(detail=False, methods=['get'])
     def update_fail_pruduct(self, request):
-        products = products_have_no_image
+        products = products_have_no_image()
         crawl_lazada_image_multithread(products)
         return Response("updated product have no image")
 

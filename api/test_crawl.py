@@ -27,7 +27,7 @@ driver = webdriver.Chrome(
     "D:\Downloads\chromedriver_win32\chromedriver.exe", options=otps)
 # driver.maximize_window()
 # Navigate to the Lazada Vietnam website
-driver.get("https://shopee.vn/B%E1%BB%99t-n%E1%BB%95i-%E2%9A%A1-CH%E1%BA%A4T-L%C6%AF%E1%BB%A2NG-T%E1%BB%90T-NH%E1%BA%A4T-%E2%9A%A11-g%C3%B3i-b%E1%BB%99t-n%E1%BB%9F-baking-powder-alsa-gi%C3%BAp-l%C3%A0m-b%C3%A1nh-n%E1%BB%95i-m%E1%BB%81m-v%C3%A0-x%E1%BB%91p-h%C6%A1n-11g-i.13434354.439134753?sp_atk=8f683ae8-6730-4bc8-8dde-54ccfc1c6535&xptdk=8f683ae8-6730-4bc8-8dde-54ccfc1c6535")
+driver.get("https://shopee.vn/Soju-H%C3%A0n-Qu%E1%BB%91c-KORICE-360ml-i.225722071.18645056608")
 
 try_times = 0
 crawled = True
@@ -35,6 +35,9 @@ len_old = 0
 # try again if cannot find element to click to open image menu
 while try_times < 10:
     try:
+        alert_close = WebDriverWait(driver, 3).until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, "button.shopee-alert-popup__btn.btn-solid-primary")))
+        alert_close.click()
         image_menu = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.CSS_SELECTOR, "div.MZ9yDd ")))
         image_menu.click()

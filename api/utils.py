@@ -502,6 +502,9 @@ def crawl_shopee_image(product, driver):
     # try again if cannot find element to click to open image menu
     while try_times < 10:
         try:
+            alert_close = WebDriverWait(driver, 3).until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, "button.shopee-alert-popup__btn.btn-solid-primary")))
+            alert_close.click()
             image_menu = WebDriverWait(driver, 3).until(
                 EC.element_to_be_clickable((By.CSS_SELECTOR, f"div.MZ9yDd:nth-of-type({2 if try_times < 7 else 1})")))
             image_menu.click()
