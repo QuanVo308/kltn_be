@@ -24,10 +24,11 @@ class ProductView(viewsets.GenericViewSet,
 
     @action(detail=False, methods=['get', 'post'])
     def test(self, request):
-        # products = Product.objects.annotate(image_count=Count("images")).filter(image_count__gt=0)
+        product = Product.objects.filter(id=int(request.data['product']))[0]
         # ps = [product for product in products if product.image_count == 0]
         # print(products)
-        product = Product.objects.filter()[100]
+        image = Image.objects.filter(link=f"{request.data['link']}", product = product)
+        print(image)
         # print(product.images.all())
         # for image in product.images.all():
         #     print(image.id, len(image.embedding_vector[0]))

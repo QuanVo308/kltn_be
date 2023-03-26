@@ -563,9 +563,21 @@ def crawl_shopee_image(product, driver):
             image_link = a.find(
                 'div', attrs={"class": "A4dsoy uno8xj"})['style']
             image_link = re.findall("url\(\"(.+)\"\)", image_link)[0]
-            images = Image.objects.filter(link=f"{image_link}")
 
-            i = Image() if len(images) == 0 else images[0]
+
+            images = Image.objects.filter(link=f"{image_link}", product = product)
+
+            # i = Image() if len(images) == 0 else images[0]
+
+            if len(images) > 1:
+                for image in images:
+                    image.delete()
+                i = Image()
+            elif len(images) == 0:
+                i = Image()
+            else:
+                i = images[0]
+
             if check_update_expire(i):
                 i.link = f"{image_link}"
                 i.product = product
@@ -755,8 +767,17 @@ def crawl_shopee_page(source, driver):
 
                         products = Product.objects.filter(
                             name=f"{unidecode(product_name)}")
-
-                        p = Product() if len(products) == 0 else products[0]
+                        
+                        if len(products) > 1:
+                            for product in products:
+                                print(f'delete product {product.id}')
+                                product.delete()
+                            p = Product()
+                        elif len(products) == 0:
+                            p = Product()
+                        else:
+                            p = products[0]
+                        # p = Product() if len(products) == 0 else products[0]
 
                         if check_update_expire(p):
                             p.link = f"https://shopee.vn{product_link}"
