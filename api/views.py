@@ -24,16 +24,12 @@ class ProductView(viewsets.GenericViewSet,
 
     @action(detail=False, methods=['get', 'post'])
     def test(self, request):
-        product = Product.objects.filter(id=int(request.data['product']))[0]
-        # ps = [product for product in products if product.image_count == 0]
-        # print(products)
-        image = Image.objects.filter(link=f"{request.data['link']}", product = product)
-        print(image)
-        # print(product.images.all())
-        # for image in product.images.all():
-        #     print(image.id, len(image.embedding_vector[0]))
-        serializer = ProductSerializer(product)
-        return Response(serializer.data)
+        product_list = []
+        products = Product.objects.annotate(image_count=Count("images")).filter(
+            source_description__startswith="Shopee", crawled__in=[True])
+        product_list = [product for product in products if product.image_count == 0]
+        print(len(product_list))
+        return Response('test')
 
     @action(detail=False, methods=['get', 'post'])
     def test_product_exist(self, request):
