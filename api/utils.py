@@ -18,6 +18,7 @@ from selenium.webdriver.common.by import By
 from unidecode import unidecode
 from selenium import webdriver
 from bs4 import BeautifulSoup
+from django.db.models import Count
 import pandas as pd
 import os
 import requests
@@ -92,6 +93,26 @@ def cleanup_webdriver():
         print(count, str(path))
         shutil.rmtree(str(path))
     print(count)
+
+def recrawl_product():
+    product_list = []
+    products = Product.objects.annotate(image_count=Count("images")).filter(
+        source_description__startswith="Shopee", crawled__in=[True])
+
+    product_list = [product for product in products if product.image_count == 0]
+
+    if len(product_list) > 0:
+        print(len(product_list))
+        n = 0
+        while True:
+            crawl_shopee_image_multithread(product_list[n:min(len(product_list), n + 60)], recrawl=True, try_time=1)
+            n+=60
+            if n >= len(product_list):
+                break
+    
+    product_list = [product for product in product_list if product.image_count == 0]
+    for product in product_list:
+        product.delete()
 
 
 class PropagatingThread(Thread):

@@ -158,24 +158,8 @@ class ProductView(viewsets.GenericViewSet,
 
     @action(detail=False, methods=['get'])
     def product_recrawl(self, request):
-        product_list = []
-        # Product.objects.filter(source_description__startswith="Shopee", crawled__in=[False])
-        products = Product.objects.annotate(image_count=Count("images")).filter(
-            source_description__startswith="Shopee", crawled__in=[True])
+        recrawl_product()
 
-        # for product in products:
-        #     if len(product.images.all()) <= 0:
-        #         product_list.append(product)
-        product_list = [product for product in products if product.image_count == 0]
-
-        if len(product_list) > 0:
-            print(len(product_list))
-            n = 0
-            while True:
-                crawl_shopee_image_multithread(product_list[n:min(len(product_list), n + 60)], recrawl=True, try_time=1)
-                n+=60
-                if n >= len(product_list):
-                    break
         return Response('update product')
 
     @action(detail=False, methods=['get'], url_path="crawl_all")
