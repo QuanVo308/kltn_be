@@ -561,7 +561,7 @@ def crawl_shopee_image(product, driver):
                 i.link = f"{image_link}"
                 i.product = product
                 # print('exact')
-                # i.embedding_vector = exact_embedding_from_link(i.link)
+                i.embedding_vector = exact_embedding_from_link(i.link)
                 # print('exact done')
                 i.save()
 
@@ -660,7 +660,7 @@ def crawl_shopee_image_multithread(product_list, recrawl=False, try_time = 3):
             print("shopee crawl image error", e)
             pass
 
-        exact_embedding_vector_product(product_list)
+        # exact_embedding_vector_product(product_list)
 
 
 def crawl_shopee_image_thread(product_list, thread_num):
