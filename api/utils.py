@@ -576,11 +576,14 @@ def crawl_shopee_image(product, driver):
 
     gc.collect()
     if crawled:
-        category = soup.select(".dR8kXc a.akCPfg:last-of-type")
-        product.category, _ = Category.objects.get_or_create(
-            name=unidecode(category[0].text).lower())
-        product.crawled = True
-        product.save()
+        try:
+            category = soup.select(".dR8kXc a.akCPfg:last-of-type")
+            product.category, _ = Category.objects.get_or_create(
+                name=unidecode(category[0].text).lower())
+            product.crawled = True
+            product.save()
+        except Exception as e:
+            print(f"get category error product {product.id}: {e}")
 
 
 def get_not_crawl_products(product_list):
