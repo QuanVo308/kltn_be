@@ -73,6 +73,15 @@ def cleanup_category():
         if len(qs) > 1:
             category.delete()
 
+def cleanup_product():
+    print('clean up product')
+    products = Product.objects.all()
+    for product in products:
+        qs = Product.objects.filter(link=product.link)
+        if len(qs) > 1:
+            print(product.id)
+            product.delete()
+
 
 def cleanup_webdriver():
     base_dir = pathlib.Path(os.environ.get('TRASH_TEMP_WEBDRIVER_PATH'))
