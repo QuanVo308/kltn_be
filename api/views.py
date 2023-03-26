@@ -155,7 +155,6 @@ class ProductView(viewsets.GenericViewSet,
     @action(detail=False, methods=['get'])
     def product_recrawl(self, request):
         recrawl_product()
-
         return Response('update product')
 
     @action(detail=False, methods=['get'], url_path="crawl_all")

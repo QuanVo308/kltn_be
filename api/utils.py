@@ -102,12 +102,16 @@ def recrawl_product():
     product_list = [product for product in products if product.image_count == 0]
 
     if len(product_list) > 0:
-        print(len(product_list))
-        n = 0
-        while True:
-            crawl_shopee_image_multithread(product_list[n:min(len(product_list), n + 60)], recrawl=True, try_time=1)
-            n+=60
-            if n >= len(product_list):
+        for _ in range(2):
+            print(len(product_list))
+            n = 0
+            while True:
+                crawl_shopee_image_multithread(product_list[n:min(len(product_list), n + 60)], recrawl=True, try_time=0)
+                n+=60
+                if n >= len(product_list):
+                    break
+            product_list = [product for product in product_list if product.image_count == 0]
+            if len(product_list) == 0:
                 break
     
     product_list = [product for product in product_list if product.image_count == 0]
@@ -571,6 +575,7 @@ def crawl_shopee_image(product, driver):
                     image_link = a.find(
                         'div', attrs={"class": "A4dsoy uno8xj"})['style']
                     image_link = re.findall("url\(\"(.+)\"\)", image_link)[0]
+                soup.select(".dR8kXc a.akCPfg:last-of-type")[0].text
                 break
             except:
                 # print(try_times)
