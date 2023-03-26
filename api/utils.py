@@ -74,6 +74,7 @@ def cleanup_category():
         if len(qs) > 1:
             category.delete()
 
+
 def cleanup_product():
     print('clean up product')
     products = Product.objects.all()
@@ -94,27 +95,35 @@ def cleanup_webdriver():
         shutil.rmtree(str(path))
     print(count)
 
+
 def recrawl_product():
     product_list = []
     products = Product.objects.annotate(image_count=Count("images")).filter(
         source_description__startswith="Shopee", crawled__in=[True])
 
-    product_list = [product for product in products if product.image_count == 0]
+    product_list = [
+        product for product in products if product.image_count == 0]
 
     if len(product_list) > 0:
         for _ in range(2):
             print(len(product_list))
             n = 0
             while True:
-                crawl_shopee_image_multithread(product_list[n:min(len(product_list), n + 60)], recrawl=True, try_time=0)
-                n+=60
+                crawl_shopee_image_multithread(
+                    product_list[n:min(len(product_list), n + 60)], recrawl=True, try_time=0)
+                n += 60
                 if n >= len(product_list):
                     break
-            product_list = [product for product in product_list if product.image_count == 0]
+            products = Product.objects.annotate(image_count=Count("images")).filter(
+                source_description__startswith="Shopee", crawled__in=[True])
+            product_list = [
+                product for product in products if product.image_count == 0]
             if len(product_list) == 0:
                 break
-    
-    product_list = [product for product in product_list if product.image_count == 0]
+    products = Product.objects.annotate(image_count=Count("images")).filter(
+        source_description__startswith="Shopee", crawled__in=[True])
+    product_list = [
+        product for product in products if product.image_count == 0]
     for product in product_list:
         product.delete()
 
@@ -538,7 +547,7 @@ def crawl_shopee_image(product, driver):
         try:
             try:
                 alert_close = WebDriverWait(driver, 1).until(
-                EC.element_to_be_clickable((By.CSS_SELECTOR, "button.shopee-alert-popup__btn.btn-solid-primary")))
+                    EC.element_to_be_clickable((By.CSS_SELECTOR, "button.shopee-alert-popup__btn.btn-solid-primary")))
                 alert_close.click()
             except:
                 pass
@@ -590,8 +599,8 @@ def crawl_shopee_image(product, driver):
                 'div', attrs={"class": "A4dsoy uno8xj"})['style']
             image_link = re.findall("url\(\"(.+)\"\)", image_link)[0]
 
-
-            images = Image.objects.filter(link=f"{image_link}", product = product)
+            images = Image.objects.filter(
+                link=f"{image_link}", product=product)
 
             # i = Image() if len(images) == 0 else images[0]
 
@@ -675,7 +684,7 @@ def exact_embedding_vector_thread(product_list, thread_num):
                         image.delete()
 
 
-def crawl_shopee_image_multithread(product_list, recrawl=False, try_time = 3):
+def crawl_shopee_image_multithread(product_list, recrawl=False, try_time=3):
     # try_time = 3
     while try_time >= 0:
         try:
@@ -793,7 +802,7 @@ def crawl_shopee_page(source, driver):
 
                         products = Product.objects.filter(
                             name=f"{unidecode(product_name)}")
-                        
+
                         if len(products) > 1:
                             for product in products:
                                 print(f'delete product {product.id}')
