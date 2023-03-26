@@ -9,6 +9,7 @@ import os
 from django.http import FileResponse
 import io
 from django.core.files import File
+from django.db.models import Count
 
 
 class ProductView(viewsets.GenericViewSet,
@@ -23,6 +24,9 @@ class ProductView(viewsets.GenericViewSet,
 
     @action(detail=False, methods=['get', 'post'])
     def test(self, request):
+        # products = Product.objects.annotate(image_count=Count("images")).filter(image_count__gt=0)
+        # ps = [product for product in products if product.image_count == 0]
+        # print(products)
         product = Product.objects.filter()[100]
         # print(product.images.all())
         # for image in product.images.all():
@@ -155,12 +159,13 @@ class ProductView(viewsets.GenericViewSet,
     def product_recrawl(self, request):
         product_list = []
         # Product.objects.filter(source_description__startswith="Shopee", crawled__in=[False])
-        products = Product.objects.filter(
+        products = Product.objects.annotate(image_count=Count("images")).filter(
             source_description__startswith="Shopee", crawled__in=[True])
 
-        for product in products:
-            if len(product.images.all()) <= 0:
-                product_list.append(product)
+        # for product in products:
+        #     if len(product.images.all()) <= 0:
+        #         product_list.append(product)
+        product_list = [product for product in products if product.image_count == 0]
 
         if len(product_list) > 0:
             print(len(product_list))
