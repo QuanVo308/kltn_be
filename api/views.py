@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from .utils import *
+from .find_similar import *
 from rest_framework.response import Response
 from rest_framework import viewsets, mixins
 from .serializers import *
@@ -24,6 +25,24 @@ class ProductView(viewsets.GenericViewSet,
 
     @action(detail=False, methods=['get', 'post'])
     def test(self, request):
+        # categories = Category.objects.all()
+        # for category in categories:
+        #     print(f"{category.name}: {len(category.products.all())}")
+        anchor_product = Product.objects.filter(id = request.data['id1'])[0]
+        test_product = Product.objects.filter(id = request.data['id2'])[0]
+
+        for i in range(int(request.data['id1']) + 1, int(request.data['id2'])):
+            print(i)
+            test_product = Product.objects.filter(id = i)[0]
+
+            result = calculate_best_similar_product(anchor_product, test_product)
+
+            print(result)
+
+        return Response('test')
+
+    @action(detail=False, methods=['get', 'post'])
+    def count_no_image(self, request):
         product_list = []
         products = Product.objects.annotate(image_count=Count("images")).filter(
             source_description__startswith="Shopee", crawled__in=[True])
@@ -61,37 +80,17 @@ class ProductView(viewsets.GenericViewSet,
             category.delete()
         return Response('delete all category')
 
-    @action(detail=False, methods=['get', 'post'])
-    def get_similar_image(self, request):
-        product_anchor = ProductTest.objects.filter(
-            name=request.GET['name'])[0]
-        print(product_anchor)
-        all_distance = []
-        products = ProductTest.objects.all()
-        for product in products:
-            print(f'calculating {product.name}')
-            if product == product_anchor:
-                continue
+    @action(detail=False, methods=['delete'])
+    def delete_all_source(self, request):
+        SourceData.objects.filter(platform='Shopee').delete()
+        return Response('delete all source')
 
-            anchor_embedding = np.array(product_anchor.embedding_vector)
-            test_embedding = np.array(product.embedding_vector)
-
-            # if anchor_embedding.shape != (1,MODEL_OUTPUT_LENGTH) or test_embedding.shape != (1,MODEL_OUTPUT_LENGTH):
-            #     return Response(product.name)
-
-            anchor_embedding = normalize(anchor_embedding, axis=1)
-            test_embedding = normalize(test_embedding, axis=1)
-            distance = cosine_similarity(anchor_embedding, test_embedding)
-            all_distance.append(
-                {'name': product.name, 'distance': distance[0][0]})
-
-        all_distance = sorted(
-            all_distance, key=lambda d: d['distance'], reverse=True)
-        name_order = []
-        for i in all_distance:
-            print(i['name'])
-            name_order.append(i['name'])
-        return Response({"order_list": name_order, "detail": all_distance})
+    @action(detail=True, methods=['get'])
+    def get_similar_product(self, request, pk):
+        anchor_product = self.get_object()
+        result =  get_similar_product_category(anchor_product)
+        print(self.get_object())
+        return Response('get similar')
 
     @action(detail=False, methods=['get', 'post'])
     def add_data_source(self, request):
@@ -101,38 +100,6 @@ class ProductView(viewsets.GenericViewSet,
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response('ok')
-
-    @action(detail=False, methods=['get'])
-    def image_exaction(self, request):
-
-        # response = requests.get("https://cdn.britannica.com/45/5645-050-B9EC0205/head-treasure-flower-disk-flowers-inflorescence-ray.jpg")
-        # t = PIL.Image.open(BytesIO(response.content))
-
-        print('loading model')
-        # m = load_models()
-        list_err = []
-        images = Image.objects.all()
-        for image_instance in images:
-            try:
-                # print(f'calculating image {image_instance.product.name}')
-                response = requests.get(image_instance.link)
-                # print(f'dowlonaded image {image_instance.product.name}')
-                image = PIL.Image.open(BytesIO(response.content))
-                image = image.convert('RGB')
-                image = image.resize(size=(200, 245))
-                image_arr = np.asarray(image)/255.
-                embedding_vector = TRAINNED_MODEL.predict(
-                    np.stack([image_arr]), verbose=0)
-                image_instance.embedding_vector = embedding_vector.tolist()
-                image_instance.save()
-                # print('\n')
-            except Exception as e:
-                list_err.append(image_instance.id)
-                print(f'{image_instance.id}')
-                print(e)
-        del model
-
-        return Response(list_err)
 
     @action(detail=False, methods=['get'])
     def image_exaction_update(self, request):
@@ -334,8 +301,7 @@ class ProductTestView(viewsets.GenericViewSet,
                 anchor_embedding - test_embedding, axis=1).numpy()
             anchor_embedding = normalize(anchor_embedding, axis=1)
             test_embedding = normalize(test_embedding, axis=1)
-            cosine_distance = cosine_similarity(
-                anchor_embedding, test_embedding)
+            cosine_distance = cosine_similarity(anchor_embedding, test_embedding)
             all_distance.append(
                 {'name': product.name, 'id': product.id, 'cosine_distance': cosine_distance[0][0], 'euclidean_distance': euclidean_distance})
 

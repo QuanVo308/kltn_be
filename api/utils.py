@@ -35,8 +35,8 @@ import gc
 from dotenv import load_dotenv
 load_dotenv()
 
+TRAINNED_MODEL = "temp"
 TRAINNED_MODEL = keras.models.load_model(os.environ.get('TRAINNED_MODEL_PATH'))
-# TRAINNED_MODEL = "haha"
 THREAD_QUANTITY_CRAWL_PRODUCT = int(
     os.environ.get('THREAD_QUANTITY_CRAWL_PRODUCT'))
 THREAD_NUMBER_LINK_SOURCE = int(
@@ -532,7 +532,7 @@ def exact_embedding_from_link(link):
     except Exception as e:
         gc.collect()
         tf.keras.backend.clear_session()
-        print('exacting image from link error', e)
+        # print('exacting image from link error', e)
         raise exceptions.ValidationError('exacting image from link error')
         return []
 
@@ -543,29 +543,31 @@ def crawl_shopee_image(product, driver):
     crawled = True
     len_old = 0
     # try again if cannot find element to click to open image menu
-    while try_times < 10:
+    while try_times < 3:
         try:
-            try:
-                alert_close = WebDriverWait(driver, 1).until(
-                    EC.element_to_be_clickable((By.CSS_SELECTOR, "button.shopee-alert-popup__btn.btn-solid-primary")))
-                alert_close.click()
-            except:
-                pass
-            image_menu = WebDriverWait(driver, 2).until(
-                EC.element_to_be_clickable((By.CSS_SELECTOR, f"div.MZ9yDd:nth-of-type({2 if try_times < 7 else 1})")))
-            image_menu.click()
+            # try:
+            alert_close = WebDriverWait(driver, 1).until(
+                EC.element_to_be_clickable((By.CSS_SELECTOR, "button.shopee-alert-popup__btn.btn-solid-primary")))
+            alert_close.click()
             break
+            # except:
+            #     pass
+            # image_menu = WebDriverWait(driver, 2).until(
+            #     EC.element_to_be_clickable((By.CSS_SELECTOR, f"div.MZ9yDd:nth-of-type({2 if try_times < 7 else 1})")))
+            # image_menu.click()
+            # break
         except Exception as e:
             # print("check", e)
-            time.sleep(1)
+            # time.sleep(1)
             try_times += 1
     # print(f'done 0 {product.name}')
+
     try_times = 0
     while try_times < 10:
 
         try:
             WebDriverWait(driver, 5).until(
-                EC.presence_of_element_located((By.CSS_SELECTOR, ".rNteT0 div")))
+                EC.presence_of_element_located((By.CSS_SELECTOR, ".MZ9yDd div")))
         except Exception as e:
             # print(e)
             try_times += 1
@@ -573,7 +575,7 @@ def crawl_shopee_image(product, driver):
         try_times += 1
         content = driver.page_source
         soup = BeautifulSoup(content, "html.parser")
-        all_soup = soup.find_all('div', attrs={"class": "y4F+fJ rNteT0"})
+        all_soup = soup.find_all('div', attrs={"class": "MZ9yDd"})
         len_new = len(all_soup)
         if len_new == 0 or len_new != len_old:
             len_old = len_new
@@ -592,40 +594,103 @@ def crawl_shopee_image(product, driver):
                 pass
 
     # print(f'done 1 {product.name}')
-    fail = 0
-    for a in soup.find_all('div', attrs={"class": "y4F+fJ rNteT0"}):
+    # fail = 0
+    # for a in soup.find_all('div', attrs={"class": "y4F+fJ rNteT0"}):
+    #     try:
+    #         image_link = a.find(
+    #             'div', attrs={"class": "A4dsoy uno8xj"})['style']
+    #         image_link = re.findall("url\(\"(.+)\"\)", image_link)[0]
+
+    #         images = Image.objects.filter(
+    #             link=f"{image_link}", product=product)
+
+    #         # i = Image() if len(images) == 0 else images[0]
+
+    #         if len(images) > 1:
+    #             for image in images:
+    #                 image.delete()
+    #             i = Image()
+    #         elif len(images) == 0:
+    #             i = Image()
+    #         else:
+    #             i = images[0]
+
+    #         if check_update_expire(i):
+    #             i.link = f"{image_link}"
+    #             i.product = product
+    #             # print('exact')
+    #             i.embedding_vector = exact_embedding_from_link(i.link)
+    #             # print('exact done')
+    #             i.save()
+
+    #     except Exception as e:
+    #         print("craw image shopee product error", e)
+
+    #         fail += 1
+    #         pass
+
+    next_button = True
+    while next_button:
+        content = driver.page_source
+        for _ in range(2):
+            soup = BeautifulSoup(content, "html.parser")
+            next_button = False
+            try:
+                fail = 0
+                for a in soup.find_all('div', attrs={"class": "MZ9yDd"}):
+                    try:
+                        # print(a, '\n')
+                        image_link = a.find(
+                            'div', attrs={"class": "A4dsoy uno8xj"})['style']
+                        image_link = re.findall(
+                            "url\(\"(.+)\"\)", image_link)[0]
+
+                        images = Image.objects.filter(
+                            link=f"{image_link}", product=product)
+
+                        # i = Image() if len(images) == 0 else images[0]
+
+                        if len(images) > 1:
+                            for image in images:
+                                image.delete()
+                            i = Image()
+                        elif len(images) == 0:
+                            i = Image()
+                        else:
+                            i = images[0]
+
+                        if check_update_expire(i):
+                            i.link = f"{image_link}"
+                            i.product = product
+                            # print('exact')
+                            i.embedding_vector = exact_embedding_from_link(
+                                i.link)
+                            # print('exact done')
+                            i.save()
+                    except Exception as e:
+                        print("craw image shopee product error", e)
+
+                        fail += 1
+                        pass
+                if fail != 0:
+                    raise exceptions.ValidationError('shopee load image error')
+                break
+            except Exception as e:
+                print('shopee not load image after click next', e)
+                time.sleep(1)
+
         try:
-            image_link = a.find(
-                'div', attrs={"class": "A4dsoy uno8xj"})['style']
-            image_link = re.findall("url\(\"(.+)\"\)", image_link)[0]
+            image_menu = WebDriverWait(driver, 2).until(
+                EC.element_to_be_clickable((By.CSS_SELECTOR, f"button.shopee-icon-button.JaQdda.Xr3frH")))
+            for _ in range(5):
+                image_menu.click()
 
-            images = Image.objects.filter(
-                link=f"{image_link}", product=product)
-
-            # i = Image() if len(images) == 0 else images[0]
-
-            if len(images) > 1:
-                for image in images:
-                    image.delete()
-                i = Image()
-            elif len(images) == 0:
-                i = Image()
-            else:
-                i = images[0]
-
-            if check_update_expire(i):
-                i.link = f"{image_link}"
-                i.product = product
-                # print('exact')
-                i.embedding_vector = exact_embedding_from_link(i.link)
-                # print('exact done')
-                i.save()
-
+            time.sleep(1)
         except Exception as e:
-            print("craw image shopee product error", e)
-
-            fail += 1
+            next_button = False
+            print("shopee click next error", e)
             pass
+
     # print(f'done 2 {product.name}')
     if fail >= 3:
         crawled = False
