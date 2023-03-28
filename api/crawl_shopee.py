@@ -301,17 +301,20 @@ def crawl_shopee_image(product, driver):
                 print('shopee not load image after click next', e)
                 time.sleep(1)
 
-        try:
-            image_menu = WebDriverWait(driver, 2).until(
-                EC.element_to_be_clickable((By.CSS_SELECTOR, f"button.shopee-icon-button.JaQdda.Xr3frH")))
-            for _ in range(5):
-                image_menu.click()
+        for i in range(2):
+            try:
+                image_menu = WebDriverWait(driver, 2).until(
+                    EC.element_to_be_clickable((By.CSS_SELECTOR, f"button.shopee-icon-button.JaQdda.Xr3frH")))
+                for _ in range(5):
+                    image_menu.click()
 
-            time.sleep(1)
-        except Exception as e:
-            next_button = False
-            print("shopee click next error")
-            pass
+                time.sleep(1)
+                break
+            except Exception as e:
+                next_button = False
+                time.sleep(1)
+                print(f"shopee click next error {1}")
+                pass
 
     # print(f'done 2 {product.name}')
     if fail >= 3:
