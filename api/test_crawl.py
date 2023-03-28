@@ -27,7 +27,7 @@ driver = webdriver.Chrome(
     "D:\Downloads\chromedriver_win32\chromedriver.exe", options=otps)
 # driver.maximize_window()
 # Navigate to the Lazada Vietnam website
-driver.get("https://shopee.vn/T%E1%BA%A5m-l%C3%B3t-ch%E1%BB%91ng-th%E1%BA%A5m-cho-b%C3%A9-v%E1%BA%A3i-s%E1%BB%A3i-tre-4-l%E1%BB%9Bp-Wooji-kt-50x70cm-i.325798615.14072215681?sp_atk=7e808a4d-30af-4886-8d24-7bca31571e88&xptdk=7e808a4d-30af-4886-8d24-7bca31571e88")
+driver.get("https://shopee.vn/T%E1%BA%A5m-L%C3%B3t-Ch%E1%BB%91ng-Th%E1%BA%A5m-Th%C3%A0nh-Ph%C3%A1t-(-L%C3%B3t-t%C3%A8-)-i.146022269.4633993246?sp_atk=fbf97caa-cdf9-4c93-85b6-68467c87303b&xptdk=fbf97caa-cdf9-4c93-85b6-68467c87303b")
 
 try_times = 0
 crawled = True

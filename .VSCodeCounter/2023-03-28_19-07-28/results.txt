@@ -1,0 +1,83 @@
+Date : 2023-03-28 19:07:28
+Directory : c:\Users\Quan\Documents\Temp\kltn_be
+Total : 52 files,  2314 codes, 324 comments, 531 blanks, all 3169 lines
+
+Languages
++------------------+------------+------------+------------+------------+------------+
+| language         | files      | code       | comment    | blank      | total      |
++------------------+------------+------------+------------+------------+------------+
+| Python           |         50 |      1,894 |        324 |        530 |      2,748 |
+| pip requirements |          1 |        339 |          0 |          0 |        339 |
+| CSV              |          1 |         81 |          0 |          1 |         82 |
++------------------+------------+------------+------------+------------+------------+
+
+Directories
++----------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                                                 | files      | code       | comment    | blank      | total      |
++----------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                                                    |         52 |      2,314 |        324 |        531 |      3,169 |
+| . (Files)                                                                                                            |          2 |        354 |          3 |          5 |        362 |
+| api                                                                                                                  |         43 |      1,811 |        243 |        465 |      2,519 |
+| api (Files)                                                                                                          |         16 |      1,278 |        217 |        307 |      1,802 |
+| api\migrations                                                                                                       |         27 |        533 |         26 |        158 |        717 |
+| kltn_be                                                                                                              |          7 |        149 |         78 |         61 |        288 |
++----------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++----------------------------------------------------------------------------------------------------------------------+------------------+------------+------------+------------+------------+
+| filename                                                                                                             | language         | code       | comment    | blank      | total      |
++----------------------------------------------------------------------------------------------------------------------+------------------+------------+------------+------------+------------+
+| c:\Users\Quan\Documents\Temp\kltn_be\api\__init__.py                                                                 | Python           |          0 |          1 |          0 |          1 |
+| c:\Users\Quan\Documents\Temp\kltn_be\api\admin.py                                                                    | Python           |          1 |          1 |          2 |          4 |
+| c:\Users\Quan\Documents\Temp\kltn_be\api\apps.py                                                                     | Python           |         13 |          3 |          3 |         19 |
+| c:\Users\Quan\Documents\Temp\kltn_be\api\cleanup_webdriver_window.py                                                 | Python           |          9 |          0 |          4 |         13 |
+| c:\Users\Quan\Documents\Temp\kltn_be\api\crawl_shopee.py                                                             | Python           |        320 |         63 |         69 |        452 |
+| c:\Users\Quan\Documents\Temp\kltn_be\api\execute.py                                                                  | Python           |          6 |          1 |          2 |          9 |
+| c:\Users\Quan\Documents\Temp\kltn_be\api\find_similar.py                                                             | Python           |         26 |          3 |         11 |         40 |
+| c:\Users\Quan\Documents\Temp\kltn_be\api\migrations\0001_initial.py                                                  | Python           |         32 |          1 |          7 |         40 |
+| c:\Users\Quan\Documents\Temp\kltn_be\api\migrations\0002_product_image.py                                            | Python           |         19 |          1 |          6 |         26 |
+| c:\Users\Quan\Documents\Temp\kltn_be\api\migrations\0003_remove_product_image_product_embedding_vector_and_more.py   | Python           |         27 |          1 |          6 |         34 |
+| c:\Users\Quan\Documents\Temp\kltn_be\api\migrations\0004_product_image_url.py                                        | Python           |         12 |          1 |          6 |         19 |
+| c:\Users\Quan\Documents\Temp\kltn_be\api\migrations\0005_producttest_delete_product.py                               | Python           |         40 |          1 |          6 |         47 |
+| c:\Users\Quan\Documents\Temp\kltn_be\api\migrations\0006_product_sourcedata_alter_producttest_image_path_and_more.py | Python           |         85 |          1 |          6 |         92 |
+| c:\Users\Quan\Documents\Temp\kltn_be\api\migrations\0007_image_created_at_image_updated_at_and_more.py               | Python           |         37 |          1 |          6 |         44 |
+| c:\Users\Quan\Documents\Temp\kltn_be\api\migrations\0008_alter_product_name_alter_product_price.py                   | Python           |         17 |          1 |          6 |         24 |
+| c:\Users\Quan\Documents\Temp\kltn_be\api\migrations\0009_product_link.py                                             | Python           |         12 |          1 |          6 |         19 |
+| c:\Users\Quan\Documents\Temp\kltn_be\api\migrations\0010_rename_describe_sourcedata_description.py                   | Python           |         12 |          1 |          6 |         19 |
+| c:\Users\Quan\Documents\Temp\kltn_be\api\migrations\0011_alter_sourcedata_min_page.py                                | Python           |         12 |          1 |          6 |         19 |
+| c:\Users\Quan\Documents\Temp\kltn_be\api\migrations\0012_sourcedata_key_words.py                                     | Python           |         13 |          1 |          6 |         20 |
+| c:\Users\Quan\Documents\Temp\kltn_be\api\migrations\0013_product_key_words.py                                        | Python           |         13 |          1 |          6 |         20 |
+| c:\Users\Quan\Documents\Temp\kltn_be\api\migrations\0014_remove_product_key_words.py                                 | Python           |         11 |          1 |          6 |         18 |
+| c:\Users\Quan\Documents\Temp\kltn_be\api\migrations\0015_product_key_words.py                                        | Python           |         13 |          1 |          6 |         20 |
+| c:\Users\Quan\Documents\Temp\kltn_be\api\migrations\0016_remove_sourcedata_key_words.py                              | Python           |         11 |          1 |          6 |         18 |
+| c:\Users\Quan\Documents\Temp\kltn_be\api\migrations\0017_sourcedata_key_words.py                                     | Python           |         13 |          1 |          6 |         20 |
+| c:\Users\Quan\Documents\Temp\kltn_be\api\migrations\0018_image_embedding_vector.py                                   | Python           |         13 |          1 |          6 |         20 |
+| c:\Users\Quan\Documents\Temp\kltn_be\api\migrations\0019_remove_sourcedata_key_words_and_more.py                     | Python           |         23 |          1 |          6 |         30 |
+| c:\Users\Quan\Documents\Temp\kltn_be\api\migrations\0020_remove_product_key_words_product_source_description.py      | Python           |         16 |          1 |          6 |         23 |
+| c:\Users\Quan\Documents\Temp\kltn_be\api\migrations\0021_sourcedata_crawled.py                                       | Python           |         12 |          1 |          6 |         19 |
+| c:\Users\Quan\Documents\Temp\kltn_be\api\migrations\0022_remove_sourcedata_crawled.py                                | Python           |         11 |          1 |          6 |         18 |
+| c:\Users\Quan\Documents\Temp\kltn_be\api\migrations\0023_sourcedata_crawled.py                                       | Python           |         12 |          1 |          6 |         19 |
+| c:\Users\Quan\Documents\Temp\kltn_be\api\migrations\0024_product_crawled.py                                          | Python           |         12 |          1 |          6 |         19 |
+| c:\Users\Quan\Documents\Temp\kltn_be\api\migrations\0025_category_sourcedata_category.py                             | Python           |         33 |          1 |          6 |         40 |
+| c:\Users\Quan\Documents\Temp\kltn_be\api\migrations\0026_remove_sourcedata_category_product_category.py              | Python           |         22 |          1 |          6 |         29 |
+| c:\Users\Quan\Documents\Temp\kltn_be\api\migrations\__init__.py                                                      | Python           |          0 |          0 |          1 |          1 |
+| c:\Users\Quan\Documents\Temp\kltn_be\api\models.py                                                                   | Python           |         54 |          9 |         18 |         81 |
+| c:\Users\Quan\Documents\Temp\kltn_be\api\products.csv                                                                | CSV              |         81 |          0 |          1 |         82 |
+| c:\Users\Quan\Documents\Temp\kltn_be\api\scheduler_jobs.py                                                           | Python           |         12 |          0 |          1 |         13 |
+| c:\Users\Quan\Documents\Temp\kltn_be\api\serializers.py                                                              | Python           |         44 |          8 |         14 |         66 |
+| c:\Users\Quan\Documents\Temp\kltn_be\api\test_crawl.py                                                               | Python           |         93 |         65 |         23 |        181 |
+| c:\Users\Quan\Documents\Temp\kltn_be\api\tests.py                                                                    | Python           |         31 |          1 |          7 |         39 |
+| c:\Users\Quan\Documents\Temp\kltn_be\api\urls.py                                                                     | Python           |         10 |          1 |          4 |         15 |
+| c:\Users\Quan\Documents\Temp\kltn_be\api\utils.py                                                                    | Python           |        341 |         35 |         93 |        469 |
+| c:\Users\Quan\Documents\Temp\kltn_be\api\views.py                                                                    | Python           |        237 |         26 |         55 |        318 |
+| c:\Users\Quan\Documents\Temp\kltn_be\kltn_be\__init__.py                                                             | Python           |          0 |          0 |          1 |          1 |
+| c:\Users\Quan\Documents\Temp\kltn_be\kltn_be\asgi.py                                                                 | Python           |          4 |          8 |          5 |         17 |
+| c:\Users\Quan\Documents\Temp\kltn_be\kltn_be\exceptions.py                                                           | Python           |         37 |          0 |          3 |         40 |
+| c:\Users\Quan\Documents\Temp\kltn_be\kltn_be\models.py                                                               | Python           |         11 |         12 |          8 |         31 |
+| c:\Users\Quan\Documents\Temp\kltn_be\kltn_be\settings.py                                                             | Python           |         87 |         35 |         37 |        159 |
+| c:\Users\Quan\Documents\Temp\kltn_be\kltn_be\urls.py                                                                 | Python           |          6 |         15 |          2 |         23 |
+| c:\Users\Quan\Documents\Temp\kltn_be\kltn_be\wsgi.py                                                                 | Python           |          4 |          8 |          5 |         17 |
+| c:\Users\Quan\Documents\Temp\kltn_be\manage.py                                                                       | Python           |         15 |          3 |          5 |         23 |
+| c:\Users\Quan\Documents\Temp\kltn_be\requirements.txt                                                                | pip requirements |        339 |          0 |          0 |        339 |
+| Total                                                                                                                |                  |      2,314 |        324 |        531 |      3,169 |
++----------------------------------------------------------------------------------------------------------------------+------------------+------------+------------+------------+------------+

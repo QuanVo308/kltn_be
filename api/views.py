@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from .utils import *
+from .crawl_shopee import *
 from .find_similar import *
 from rest_framework.response import Response
 from rest_framework import viewsets, mixins
@@ -25,19 +26,19 @@ class ProductView(viewsets.GenericViewSet,
 
     @action(detail=False, methods=['get', 'post'])
     def test(self, request):
-        # categories = Category.objects.all()
-        # for category in categories:
-        #     print(f"{category.name}: {len(category.products.all())}")
-        anchor_product = Product.objects.filter(id = request.data['id1'])[0]
-        test_product = Product.objects.filter(id = request.data['id2'])[0]
+        categories = Category.objects.all()
+        for category in categories:
+            print(f"{category.name}: {len(category.products.all())}")
+        # anchor_product = Product.objects.filter(id = request.data['id1'])[0]
+        # test_product = Product.objects.filter(id = request.data['id2'])[0]
 
-        for i in range(int(request.data['id1']) + 1, int(request.data['id2'])):
-            print(i)
-            test_product = Product.objects.filter(id = i)[0]
+        # for i in range(int(request.data['id1']) + 1, int(request.data['id2'])):
+        #     print(i)
+        #     test_product = Product.objects.filter(id = i)[0]
 
-            result = calculate_best_similar_product(anchor_product, test_product)
+        #     result = calculate_best_similar_product(anchor_product, test_product)
 
-            print(result)
+        #     print(result)
 
         return Response('test')
 
@@ -121,7 +122,7 @@ class ProductView(viewsets.GenericViewSet,
 
     @action(detail=False, methods=['get'])
     def product_recrawl(self, request):
-        recrawl_product()
+        shopee_recrawl_product()
         return Response('update product')
 
     @action(detail=False, methods=['get'], url_path="crawl_all")
@@ -165,6 +166,8 @@ class CategoryView(viewsets.GenericViewSet,
 
     @action(detail=False, methods=['get', 'post'])
     def test(self, request):
+        print(request.data)
+        print(request.POST)
         return Response('test category')
 
     @action(detail=False, methods=['get'])
