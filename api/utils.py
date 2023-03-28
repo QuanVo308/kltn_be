@@ -9,6 +9,7 @@ from threading import Thread
 import pathlib
 import math
 from .models import *
+from .serializers import *
 from urllib.parse import unquote
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service
@@ -64,7 +65,6 @@ otps2.add_argument("--log-level=3")
 # def load_models():
 # return TRAINNED_MODEL
 # return keras.models.load_model(os.environ.get('TRAINNED_MODEL_PATH'))
-
 
 def cleanup_category():
     print('clean up category')
@@ -243,3 +243,34 @@ def exact_embedding_vector_thread(product_list, thread_num):
                     except:
                         # print("image deleted")
                         image.delete()
+
+
+def find_categories(category_ids=['']):
+    categories = []
+    for id in category_ids:
+        try:
+            categories.append(Category.objects.filter(id=id)[0])
+        except Exception as e:
+            print(f"get category error {e}")
+    return categories
+
+
+def find_product(name='', category_ids=['']):
+    categories = find_categories(category_ids)
+
+    search = unidecode(name).lower()
+    search_words = search.split()
+    name_queries = Q()
+    for word in search_words:
+        name_queries &= Q(name__icontains=word)
+
+    category_queries = Q()
+    for category in categories:
+        category_queries |= Q(category=category)
+
+    products = Product.objects.filter(category_queries).filter(name_queries)
+
+    print(len(products))
+    max_len = min(600, len(products))
+
+    return products[:max_len]

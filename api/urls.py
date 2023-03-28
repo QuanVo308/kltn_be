@@ -1,3 +1,4 @@
+# from .execute import *
 from django.urls import path
 from rest_framework.routers import SimpleRouter
 from . import views
@@ -11,5 +12,3 @@ route.register(r'product_test', ProductTestView)
 urlpatterns = [
 
 ] + route.urls
-
-# from .execute import *

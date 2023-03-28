@@ -12,6 +12,7 @@ from django.http import FileResponse
 import io
 from django.core.files import File
 from django.db.models import Count
+from .execute import *
 
 
 class ProductView(viewsets.GenericViewSet,
@@ -47,7 +48,8 @@ class ProductView(viewsets.GenericViewSet,
         product_list = []
         products = Product.objects.annotate(image_count=Count("images")).filter(
             source_description__startswith="Shopee", crawled__in=[True])
-        product_list = [product for product in products if product.image_count == 0]
+        product_list = [
+            product for product in products if product.image_count == 0]
         print(len(product_list))
         return Response('test')
 
@@ -86,10 +88,45 @@ class ProductView(viewsets.GenericViewSet,
         SourceData.objects.filter(platform='Shopee').delete()
         return Response('delete all source')
 
-    @action(detail=True, methods=['get'])
+    @action(detail=False, methods=['get', 'post'])
+    def find_product(self, request):
+        category_ids = request.data.get('categories', [])
+        search = request.data.get('name', '')
+        # page = request.data.get('page', 1)
+        # per_page = request.data.get('per_page', 60)
+        print(type(category_ids), category_ids)
+        print(type(search), search)
+
+        print(len(search), len(category_ids))
+        if len(search) == 0 and len(category_ids) == 0:
+            return Response({
+                # 'max_page': 10,
+                'products': get_random_product_serializer(),
+                # 'page': page,
+            })
+
+        products = find_product(name=search, category_ids=category_ids)
+        # max_page = math.ceil(len(products)/float(per_page))
+        # page = max(1, page)
+        # page = min(max_page, page)
+        # end_indicator = min(len(products), page * per_page)
+
+        # products = products[(page-1) * per_page: end_indicator]
+
+        serializer = ProductSearchSerializer(products, many=True)
+
+        return Response({
+            # 'max_page': max_page,
+            'products': serializer.data,
+            # 'page': page,
+        })
+
+    @action(detail=True, methods=['get', 'post'])
     def get_similar_product(self, request, pk):
+        # print(request.data['categories'])
+        # print(request.data['product_id'])
         anchor_product = self.get_object()
-        result =  get_similar_product_category(anchor_product)
+        result = get_similar_product_category(anchor_product)
         print(self.get_object())
         return Response('get similar')
 
@@ -168,6 +205,7 @@ class CategoryView(viewsets.GenericViewSet,
     def test(self, request):
         print(request.data)
         print(request.POST)
+        print(type(request.data['categories']))
         return Response('test category')
 
     @action(detail=False, methods=['get'])
@@ -304,7 +342,8 @@ class ProductTestView(viewsets.GenericViewSet,
                 anchor_embedding - test_embedding, axis=1).numpy()
             anchor_embedding = normalize(anchor_embedding, axis=1)
             test_embedding = normalize(test_embedding, axis=1)
-            cosine_distance = cosine_similarity(anchor_embedding, test_embedding)
+            cosine_distance = cosine_similarity(
+                anchor_embedding, test_embedding)
             all_distance.append(
                 {'name': product.name, 'id': product.id, 'cosine_distance': cosine_distance[0][0], 'euclidean_distance': euclidean_distance})
 
