@@ -508,7 +508,7 @@ def crawl_shopee_page(source, driver):
         except Exception as e_533:
             print(f'shopee change page error {link}', e_533)
             pass
-    # source.crawled = True
-    # source.save()
+    source.crawled = True
+    source.save()
     gc.collect()
     # driver.quit()
