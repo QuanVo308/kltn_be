@@ -256,9 +256,9 @@ def crawl_shopee_image(product, driver):
     next_button = True
     while next_button:
         content = driver.page_source
+        next_button = False
         for _ in range(2):
             soup = BeautifulSoup(content, "html.parser")
-            next_button = False
             try:
                 fail = 0
                 for a in soup.find_all('div', attrs={"class": "MZ9yDd"}):
@@ -289,6 +289,7 @@ def crawl_shopee_image(product, driver):
                             # print('exact')
                             i.embedding_vector = exact_embedding_from_link(
                                 i.link)
+                            next_button = True
                             # print('exact done')
                             i.save()
                     except Exception as e:
@@ -311,10 +312,10 @@ def crawl_shopee_image(product, driver):
                     image_menu.click()
 
                 time.sleep(1)
-                next_button = True
                 break
             except Exception as e:
-                next_button = False
+                if i == 1:
+                    next_button = False
                 time.sleep(1)
                 print(f"shopee click next error {i}")
                 pass
