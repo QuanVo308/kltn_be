@@ -164,16 +164,18 @@ def crawl_shopee_image(product, driver):
     try_times = 0
     crawled = True
     len_old = 0
-    # try again if cannot find element to click to open image menu
+    # try again if cannot find element to click to open image menu or close 18+ alert
     while try_times < 3:
         try:
             # try:
+            """close 18+ alert"""
             alert_close = WebDriverWait(driver, 1).until(
                 EC.element_to_be_clickable((By.CSS_SELECTOR, "button.shopee-alert-popup__btn.btn-solid-primary")))
             alert_close.click()
             break
             # except:
             #     pass
+            """open image menu (removed)"""
             # image_menu = WebDriverWait(driver, 2).until(
             #     EC.element_to_be_clickable((By.CSS_SELECTOR, f"div.MZ9yDd:nth-of-type({2 if try_times < 7 else 1})")))
             # image_menu.click()
@@ -309,11 +311,12 @@ def crawl_shopee_image(product, driver):
                     image_menu.click()
 
                 time.sleep(1)
+                next_button = True
                 break
             except Exception as e:
                 next_button = False
                 time.sleep(1)
-                print(f"shopee click next error {1}")
+                print(f"shopee click next error {i}")
                 pass
 
     # print(f'done 2 {product.name}')
