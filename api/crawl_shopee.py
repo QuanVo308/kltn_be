@@ -427,12 +427,25 @@ def crawl_shopee_page(source, driver):
     except Exception as e_481:
         print("crawl shopee page 0 error", e_481)
 
-    while same <= 6:
+    prev_url = ''
+    while same <= 4:
 
         try:
+            print(driver.current_url)
             shopee_scroll_to_end(driver)
             try_time = 3
-            same += 1
+            if (driver.current_url == prev_url):
+                same += 1
+                time.sleep(1)
+                # print('same', same, prev_url)
+                if same == 2:
+                    driver.get(driver.current_url)
+            else:
+                prev_url = driver.current_url 
+                same = 0
+                # print('new', same)
+            
+            new_product = False
             while try_time >= 0:
 
                 try_time -= 1
@@ -472,7 +485,7 @@ def crawl_shopee_page(source, driver):
                             p.source_description = source.description
                             # p.key_words.extend(new_key_words)
                             p.save()
-                            same = 0
+                            new_product = True
                             product_list.append(p)
                     except Exception as e1:
                         failed = True
@@ -485,7 +498,7 @@ def crawl_shopee_page(source, driver):
             print(f'shopee crawl page error {link}', err)
             pass
 
-        if same == 0:
+        if new_product:
             crawl_shopee_image_multithread(product_list)
 
         try:
@@ -495,7 +508,7 @@ def crawl_shopee_page(source, driver):
         except Exception as e_533:
             print(f'shopee change page error {link}', e_533)
             pass
-    source.crawled = True
-    source.save()
+    # source.crawled = True
+    # source.save()
     gc.collect()
     # driver.quit()
