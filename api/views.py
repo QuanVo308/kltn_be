@@ -12,7 +12,7 @@ from django.http import FileResponse
 import io
 from django.core.files import File
 from django.db.models import Count
-from .execute import *
+
 
 
 class ProductView(viewsets.GenericViewSet,
@@ -254,6 +254,17 @@ class ProductTestView(viewsets.GenericViewSet,
 
     @action(detail=False, methods=['get', 'post'])
     def test(self, request):
+        image = ProductTest.objects.filter(id = request.data['image'])[0]
+        img = cv2.imread(image.image_path)
+        print(img.shape)
+        print(type(img))
+        cv2.imshow('test', img)
+
+        images = ProductTest.objects.all()
+        for image in images:
+            img = cv2.imread(image.image_path)
+            img = img/255.
+            print(image.name, img.shape, type(img), img[1][1][1])
         return Response('test prododuct')
 
     @action(detail=True, methods=['get'])
@@ -272,18 +283,24 @@ class ProductTestView(viewsets.GenericViewSet,
 
         print('loading model')
         # m = load_models()
+        session = new_session()
 
         products = ProductTest.objects.all()
         for product in products:
             print(f'calculating image {product.name}')
             image = PIL.Image.open(pathlib.Path(product.image_path))
-            image = image.resize(size=(200, 245))
+            image_rmbg = remove(image, session=session)
+            # Create a white rgb background
+            new_image = PIL.Image.new("RGB", image_rmbg.size, "WHITE") 
+            new_image.paste(image_rmbg, mask = image_rmbg.split()[3])
+
+            image = new_image.resize(size=(200, 245))
             image_arr = np.asarray(image)/255.
             embedding_vector = TRAINNED_MODEL.predict(
                 np.stack([image_arr]), verbose=0)
             product.embedding_vector = embedding_vector.tolist()
             product.save()
-        del model
+        
 
         return Response("ok")
 
@@ -308,7 +325,7 @@ class ProductTestView(viewsets.GenericViewSet,
                 np.stack([image_arr]), verbose=0)
             product.embedding_vector = embedding_vector.tolist()
             product.save()
-        del model
+        
 
         return Response("ok")
 
