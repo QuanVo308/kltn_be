@@ -29,7 +29,7 @@ class ProductView(viewsets.GenericViewSet,
     def test(self, request):
         categories = Category.objects.all()
         for category in categories:
-            print(f"{category.name}: {len(category.products.all())}")
+            print(f"{category.id}: {len(category.products.all())}")
         # anchor_product = Product.objects.filter(id = request.data['id1'])[0]
         # test_product = Product.objects.filter(id = request.data['id2'])[0]
 
@@ -124,11 +124,17 @@ class ProductView(viewsets.GenericViewSet,
     @action(detail=True, methods=['get', 'post'])
     def get_similar_product(self, request, pk):
         # print(request.data['categories'])
-        # print(request.data['product_id'])
+        print(request.data['images'])
         anchor_product = self.get_object()
-        result = get_similar_product_category(anchor_product)
         print(self.get_object())
-        return Response('get similar')
+        images = []
+        for image_id in request.data['images']:
+            image = Image.objects.filter(id=image_id)[0]
+            images.append(image)
+        result = get_similar_products_multithread(anchor_product, images)
+        print(len(result))
+        return Response(result)
+        # return Response('result')
 
     @action(detail=False, methods=['get', 'post'])
     def add_data_source(self, request):
