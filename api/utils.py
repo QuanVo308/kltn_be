@@ -37,6 +37,7 @@ import cv2
 from dotenv import load_dotenv
 load_dotenv()
 from rembg import remove, new_session
+from multiprocessing.pool import ThreadPool
 # from .execute import *
 
 TRAINNED_MODEL = "temp"
@@ -205,6 +206,66 @@ def exact_embedding_from_link(link):
         raise exceptions.ValidationError('exacting image from link error')
         return []
 
+def update_exact_image_multithread_rembg(i, total):
+    print('loading image')
+    products = np.array_split(list(Product.objects.all()), total)[i]
+    print('loading done', len(products))
+    step = 20
+    thread_num = 4
+    start = 0
+    max_len = len(products)
+    while True:
+        end = min(max_len, start + step)
+        print(start, end, max_len)
+
+        images = []
+        for product in products[start:end]:
+            images.extend(list(product.images.all()))
+
+        with ThreadPool(processes=thread_num) as pool:
+            results = pool.imap_unordered(exact_embedding_images_rembg, np.array_split(images, thread_num))
+            for result in results:
+                pass
+        start += step
+        if start >= max_len: 
+            break
+
+
+
+def exact_embedding_images_rembg(images):
+    session = new_session()
+    for image in images:
+        # print(image.id)
+        try:
+            image.embedding_vector = exact_embedding_from_link_rembg(image.link, session)
+            image.save()
+        except Exception as e:
+            print(f'image {image.id} new exact error', e)
+
+def exact_embedding_from_link_rembg(link, session):
+    try:
+        response = requests.get(link, timeout=3)
+        image = PIL.Image.open(BytesIO(response.content))
+
+        image_rmbg = remove(image, session=session)
+            # Create a white rgb background
+        new_image = PIL.Image.new("RGB", image_rmbg.size, "WHITE") 
+        new_image.paste(image_rmbg, mask = image_rmbg.split()[3])
+
+        image = new_image.resize(size=(200, 245))
+        image_arr = np.asarray(image)/255.
+
+        embedding_vector = TRAINNED_MODEL.predict(
+            np.stack([image_arr]), verbose=0).tolist()
+        gc.collect()
+        tf.keras.backend.clear_session()
+        return embedding_vector
+    except Exception as e:
+        gc.collect()
+        tf.keras.backend.clear_session()
+        # print('exacting image from link error', e)
+        raise exceptions.ValidationError('exacting image from link error')
+        return []
 
 def get_not_crawl_products(product_list):
     ps = [product for product in product_list if product.crawled == False]

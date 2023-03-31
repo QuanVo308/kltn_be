@@ -153,6 +153,16 @@ class ProductView(viewsets.GenericViewSet,
         return Response('update image')
 
     @action(detail=False, methods=['get'])
+    def image_exaction_update_rembg(self, request):
+
+        total = 10
+        for i in range(total):
+            print(f'{i+1}/{total}')
+            update_exact_image_multithread_rembg(i, total)
+
+        return Response('update image')
+
+    @action(detail=False, methods=['get'])
     def product_update(self, request):
         product_list = []
         # Product.objects.filter(source_description__startswith="Shopee", crawled__in=[False])

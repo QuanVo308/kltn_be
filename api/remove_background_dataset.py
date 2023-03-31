@@ -25,18 +25,20 @@ def remove_background_thread(paths):
         output = remove(img, session=session)
         new_image = PIL.Image.new("RGB", output.size, "WHITE") 
         new_image.paste(output, mask = output.split()[3]) 
-        new_image.save(rleft / path.name)
+        if 'left' in str(path).split('\\'):
+            new_image.save(rleft / path.name)
+        else:
+            new_image.save(rright / path.name)
 
 
 
 count = 0
 paths = []
-paths.extend(list(left.glob("*")))
-paths.extend(list(right.glob("*")))
+paths.extend(list(left.glob("*"))[:10])
+paths.extend(list(right.glob("*"))[:10])
 
 print(len(paths))
-
-thread_num = 5
+thread_num = 2
 with ThreadPool(processes=thread_num) as pool:
     results = pool.imap_unordered(remove_background_thread, np.array_split(paths, thread_num))
     for result in results:

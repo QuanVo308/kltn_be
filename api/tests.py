@@ -97,8 +97,3 @@
 # # close the thread pool
 # pool.close()
 
-import numpy as np
-
-lst = range(21)
-np.array_split(lst, 5)
-print(type(np.array_split(lst, 5)))
