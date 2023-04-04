@@ -1,9 +1,8 @@
-from djongo import models
-from kltn_be.models import BaseModel
+# from djongo import models
+from django.db import models
+# from kltn_be.models import BaseModel
 from rest_framework import serializers
 # from django.conf import settings
-# from djongo.storage import GridFSStorage
-# grid_fs_storage = GridFSStorage(collection='myfiles', base_url=''.join(["localhost:8000", 'myfiles/']))
 
 # Create your models here.
 class ProductTest(models.Model):

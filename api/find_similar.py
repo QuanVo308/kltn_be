@@ -1,22 +1,23 @@
 from .utils import *
 
-
 def get_similar_products_multithread(anchor_product, anchor_images):
-    compare_products = get_similar_product_category(anchor_product)
-    quantity = len(compare_products)
+    compare_products = list(get_similar_product_category(anchor_product))
     result = {}
 
-    total_thread = os.cpu_count() * 8
+    total_thread = os.cpu_count()
+    compare_products = np.array_split(compare_products, total_thread)
+
     threads = []
     for thread_num in range(total_thread):
         temp_list = []
         result[f'{thread_num}'] = temp_list
         threads.append(PropagatingThread(
-            target=get_similar_products_thread, args=(anchor_images, compare_products[
-                int(quantity/total_thread * thread_num):
-                int(quantity/total_thread * (thread_num + 1))
-            ], temp_list,)))
+            target=get_similar_products_thread, args=(anchor_images, compare_products[thread_num], temp_list,)))
+    
+    count=0
     for thread in threads:
+        count+=1
+        print(count)
         thread.start()
     for thread in threads:
         thread.join()
@@ -35,10 +36,13 @@ def get_similar_products_thread(anchor_images, test_products, temp_list):
     quantiy = len(test_products)
     count = 0
     for test_product in test_products:
+        # start = timezone.now()
         count+=1
-        print(f'{count}/{quantiy}')
+        # print(f'{count}/{quantiy}')
         temp_list.append(calculate_best_similar_product(
             anchor_images, test_product))
+        # end = timezone.now()
+        # print(f"loop product time: {end - start} \n")
     return temp_list
 
 
@@ -52,8 +56,12 @@ def get_similar_product_category(anchor_product):
 def calculate_best_similar_product(anchor_images, test_product):
     best_similar = {"euclidean_distance": float(
         'inf'), "cosine_distance": 0}
+    
+    test_product_images = test_product.images.all()
+
+    # start = timezone.now()
     for anchor_image in anchor_images:
-        for test_image in test_product.images.all():
+        for test_image in test_product_images:
             try:
                 distance = calculate_similar_image(anchor_image, test_image)
                 # print("check", distance)
@@ -63,6 +71,8 @@ def calculate_best_similar_product(anchor_images, test_product):
                 # print('\n')
             except Exception as e:
                 print(f"calculate best distance error {e}")
+    # end = timezone.now()
+    # print(f"calculate product time: {end - start}")
 
     best_similar['product_comapre'] = ProductSearchSerializer(test_product).data
     return best_similar

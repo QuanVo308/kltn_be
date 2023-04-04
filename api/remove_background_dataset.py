@@ -34,10 +34,11 @@ def remove_background_thread(paths):
 
 count = 0
 paths = []
-paths.extend(list(left.glob("*"))[:10])
-paths.extend(list(right.glob("*"))[:10])
+paths.extend(list(left.glob("*")))
+paths.extend(list(right.glob("*")))
 
 print(len(paths))
+
 thread_num = 2
 with ThreadPool(processes=thread_num) as pool:
     results = pool.imap_unordered(remove_background_thread, np.array_split(paths, thread_num))
