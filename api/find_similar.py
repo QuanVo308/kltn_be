@@ -79,8 +79,8 @@ def calculate_best_similar_product(anchor_images, test_product):
 
 
 def calculate_similar_image(anchor_image, test_image):
-    anchor_embedding = np.asarray(anchor_image.embedding_vector)
-    test_embedding = np.asarray(test_image.embedding_vector)
+    anchor_embedding = np.asarray(json.loads(anchor_image.embedding_vector))
+    test_embedding = np.asarray(json.loads(test_image.embedding_vector))
 
     euclidean_distance = tf.math.reduce_euclidean_norm(
         anchor_embedding - test_embedding, axis=1).numpy()

@@ -248,8 +248,8 @@ def crawl_shopee_image(product, driver):
                         if check_update_expire(i):
                             i.link = f"{image_link}"
                             i.product = product
-                            i.embedding_vector = exact_embedding_from_link(
-                                i.link)
+                            i.embedding_vector = json.dumps(exact_embedding_from_link(
+                                i.link))
                             next_button = True
                             i.save()
                             new_image = True

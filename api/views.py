@@ -28,24 +28,19 @@ class ProductView(viewsets.GenericViewSet,
     def test(self, request):
         # print('testing')
         # product = Product.objects.all().latest('id')
-        # print(product.id)
-        # print(get_next_value("check", initial_value=0, reset_value=get_next_value('check')))
-        # print(get_next_value("check", initial_value=product.id))
-        # print(get_next_value("check"))
+
 
     #     driver = webdriver.Chrome(
     # "D:\Downloads\chromedriver_win32\chromedriver.exe", options=otps)
     #     product = Product.objects.filter(id = 5268)[0]
     #     crawl_shopee_image(product, driver)
         # print(request.data['name'])
-        # Category.objects.create(
-        #         name=unidecode(request.data['name']).lower())
+        Category.objects.create(
+                name=unidecode(request.data['name']).lower())
         # Category.objects.create(
         #         name=unidecode(request.data['name']).lower(), id = int(request.data['id1']))
 
-        pk_field = Category._meta.get_field('id')
-        sequence_value = pk_field.get_default()
-        print(sequence_value)
+   
         return Response('test')
 
     @action(detail=False, methods=['get', 'post'])
@@ -282,9 +277,9 @@ class ProductTestView(viewsets.GenericViewSet,
 
     @action(detail=False, methods=['get', 'post'])
     def test(self, request):
-        categories = Category.objects.all()
-        for category in categories:
-            print(f"{category.id}: {len(category.products.all())}")
+        # categories = Category.objects.all()
+        # for category in categories:
+        #     print(f"{category.id}: {len(category.products.all())}")
         return Response('test prododuct')
 
     @action(detail=True, methods=['get'])
@@ -318,7 +313,8 @@ class ProductTestView(viewsets.GenericViewSet,
             image_arr = np.asarray(image)/255.
             embedding_vector = TRAINNED_MODEL.predict(
                 np.stack([image_arr]), verbose=0)
-            product.embedding_vector = embedding_vector.tolist()
+            
+            product.embedding_vector = json.dumps(embedding_vector.tolist())
             product.save()
         
 
@@ -376,8 +372,8 @@ class ProductTestView(viewsets.GenericViewSet,
             if product == product_anchor:
                 continue
 
-            anchor_embedding = np.asarray(product_anchor.embedding_vector)
-            test_embedding = np.asarray(product.embedding_vector)
+            anchor_embedding = np.asarray(json.loads(product_anchor.embedding_vector))
+            test_embedding = np.asarray(json.loads(product.embedding_vector))
 
             # if anchor_embedding.shape != (1,MODEL_OUTPUT_LENGTH) or test_embedding.shape != (1,MODEL_OUTPUT_LENGTH):
             #     return Response(product.name)

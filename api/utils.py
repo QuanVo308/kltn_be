@@ -1,3 +1,4 @@
+from multiprocessing.pool import ThreadPool
 import numpy as np
 from rest_framework import exceptions
 from tensorflow import keras
@@ -159,7 +160,7 @@ def exact_image_thread(images):
     for idx, image in enumerate(images):
         # print(image.id, f'{idx}/{len(images)}')
         try:
-            image.embedding_vector = exact_embedding_from_link(image.link)
+            image.embedding_vector = json.dumps(exact_embedding_from_link(image.link))
             image.save()
         except:
             image.delete()
@@ -300,8 +301,8 @@ def exact_embedding_vector_thread(product_list, thread_num):
             for image in product.images.all():
                 if image.embedding_vector == []:
                     try:
-                        image.embedding_vector = exact_embedding_from_link(
-                            image.link)
+                        image.embedding_vector = json.dumps(exact_embedding_from_link(
+                            image.link))
                         # print('image calculated')
                         image.save()
                     except:
