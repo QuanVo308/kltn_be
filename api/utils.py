@@ -38,7 +38,7 @@ from dotenv import load_dotenv
 load_dotenv()
 from rembg import remove, new_session
 from multiprocessing.pool import ThreadPool
-# from .execute import *
+
 
 TRAINNED_MODEL = "temp"
 TRAINNED_MODEL = keras.models.load_model(os.environ.get('TRAINNED_MODEL_PATH'))
@@ -58,7 +58,7 @@ otps.add_argument("--log-level=3")
 
 
 otps2 = webdriver.ChromeOptions()
-otps2.add_argument('--headless')
+# otps2.add_argument('--headless')
 otps2.add_argument("--disable-extensions")
 otps2.add_argument("--disable-logging")
 otps2.add_argument("--log-level=3")

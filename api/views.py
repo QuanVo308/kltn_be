@@ -12,7 +12,7 @@ from django.http import FileResponse
 import io
 from django.core.files import File
 from django.db.models import Count
-
+# from .execute import *
 
 
 class ProductView(viewsets.GenericViewSet,
@@ -27,21 +27,29 @@ class ProductView(viewsets.GenericViewSet,
 
     @action(detail=False, methods=['get', 'post'])
     def test(self, request):
-        categories = Category.objects.all()
-        for category in categories:
-            print(f"{category.id}: {len(category.products.all())}")
-        # anchor_product = Product.objects.filter(id = request.data['id1'])[0]
-        # test_product = Product.objects.filter(id = request.data['id2'])[0]
+        # Category.objects.create(
+        #         name=unidecode(request.data['name']).lower())
+        # Category.objects.create(name=unidecode(request.data['name']).lower())
+        # Category.objects.create(
+        #         name=unidecode(request.data['name']).lower(), id = int(request.data['id1']))
 
-        # for i in range(int(request.data['id1']) + 1, int(request.data['id2'])):
-        #     print(i)
-        #     test_product = Product.objects.filter(id = i)[0]
+        c = Category.objects.filter(id=463)[0]
+        c.save()
 
-        #     result = calculate_best_similar_product(anchor_product, test_product)
-
-        #     print(result)
 
         return Response('test')
+
+    @action(detail=False, methods=['get', 'post'])
+    def re_crawl_category(self, request):
+        products = Product.objects.filter(Q(category__name = 'khac')|Q(category = None))
+        products = np.array_split(products, len(products)/60)
+        
+        if len(products) > 0:
+            for i in range(len(products)):
+                print(i)
+                crawl_shopee_image_multithread(
+                    products[i], recrawl=True, try_time=0)
+        return Response('re_crawl_category')        
 
     @action(detail=False, methods=['get', 'post'])
     def count_no_image(self, request):
@@ -264,17 +272,9 @@ class ProductTestView(viewsets.GenericViewSet,
 
     @action(detail=False, methods=['get', 'post'])
     def test(self, request):
-        image = ProductTest.objects.filter(id = request.data['image'])[0]
-        img = cv2.imread(image.image_path)
-        print(img.shape)
-        print(type(img))
-        cv2.imshow('test', img)
-
-        images = ProductTest.objects.all()
-        for image in images:
-            img = cv2.imread(image.image_path)
-            img = img/255.
-            print(image.name, img.shape, type(img), img[1][1][1])
+        categories = Category.objects.all()
+        for category in categories:
+            print(f"{category.id}: {len(category.products.all())}")
         return Response('test prododuct')
 
     @action(detail=True, methods=['get'])

@@ -34,8 +34,8 @@ def remove_background_thread(paths):
 
 count = 0
 paths = []
-paths.extend(list(left.glob("*"))[:10])
-paths.extend(list(right.glob("*"))[:10])
+paths.extend(list(left.glob("*")))
+paths.extend(list(right.glob("*")))
 
 print(len(paths))
 thread_num = 2

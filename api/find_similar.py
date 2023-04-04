@@ -52,8 +52,11 @@ def get_similar_product_category(anchor_product):
 def calculate_best_similar_product(anchor_images, test_product):
     best_similar = {"euclidean_distance": float(
         'inf'), "cosine_distance": 0}
+    
+    test_product_images = test_product.images.all()
+
     for anchor_image in anchor_images:
-        for test_image in test_product.images.all():
+        for test_image in test_product_images:
             try:
                 distance = calculate_similar_image(anchor_image, test_image)
                 # print("check", distance)

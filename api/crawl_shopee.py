@@ -213,47 +213,11 @@ def crawl_shopee_image(product, driver):
                 soup.select(".dR8kXc a.akCPfg:last-of-type")[0].text
                 break
             except:
-                # print(try_times)
                 time.sleep(1)
                 pass
 
-    # print(f'done 1 {product.name}')
-    # fail = 0
-    # for a in soup.find_all('div', attrs={"class": "y4F+fJ rNteT0"}):
-    #     try:
-    #         image_link = a.find(
-    #             'div', attrs={"class": "A4dsoy uno8xj"})['style']
-    #         image_link = re.findall("url\(\"(.+)\"\)", image_link)[0]
-
-    #         images = Image.objects.filter(
-    #             link=f"{image_link}", product=product)
-
-    #         # i = Image() if len(images) == 0 else images[0]
-
-    #         if len(images) > 1:
-    #             for image in images:
-    #                 image.delete()
-    #             i = Image()
-    #         elif len(images) == 0:
-    #             i = Image()
-    #         else:
-    #             i = images[0]
-
-    #         if check_update_expire(i):
-    #             i.link = f"{image_link}"
-    #             i.product = product
-    #             # print('exact')
-    #             i.embedding_vector = exact_embedding_from_link(i.link)
-    #             # print('exact done')
-    #             i.save()
-
-    #     except Exception as e:
-    #         print("craw image shopee product error", e)
-
-    #         fail += 1
-    #         pass
-
     next_button = True
+    new_image = False
     while next_button:
         content = driver.page_source
         next_button = False
@@ -263,7 +227,6 @@ def crawl_shopee_image(product, driver):
                 fail = 0
                 for a in soup.find_all('div', attrs={"class": "MZ9yDd"}):
                     try:
-                        # print(a, '\n')
                         image_link = a.find(
                             'div', attrs={"class": "A4dsoy uno8xj"})['style']
                         image_link = re.findall(
@@ -271,8 +234,6 @@ def crawl_shopee_image(product, driver):
 
                         images = Image.objects.filter(
                             link=f"{image_link}", product=product)
-
-                        # i = Image() if len(images) == 0 else images[0]
 
                         if len(images) > 1:
                             for image in images:
@@ -282,16 +243,16 @@ def crawl_shopee_image(product, driver):
                             i = Image()
                         else:
                             i = images[0]
+                            new_image = True
 
                         if check_update_expire(i):
                             i.link = f"{image_link}"
                             i.product = product
-                            # print('exact')
                             i.embedding_vector = exact_embedding_from_link(
                                 i.link)
                             next_button = True
-                            # print('exact done')
                             i.save()
+                            new_image = True
                     except Exception as e:
                         print("craw image shopee product error", e)
 
@@ -320,17 +281,28 @@ def crawl_shopee_image(product, driver):
                 print(f"shopee click next error {i}")
                 pass
 
-    # print(f'done 2 {product.name}')
-    if fail >= 3:
-        crawled = False
-
     gc.collect()
-    if crawled:
+    if new_image:
         try:
-            category = soup.select(".dR8kXc a.akCPfg:last-of-type")
-            product.category, _ = Category.objects.get_or_create(
-                name=unidecode(category[0].text).lower())
+            addition_category = ''
+            category = soup.select(".dR8kXc a.akCPfg:last-of-type")[0].text
+            # print(category)
+            if unidecode(category).lower() == 'khac':
+                addition_category = soup.select(".dR8kXc a.akCPfg:nth-last-child(3)")[0].text
+                # print(addition_category)
+                category = f'{addition_category} {category}'
+                # print(category)
+            # print(1)
+
+            category_instance = Category.objects.filter(
+                name=unidecode(category).lower())
+            
+            category_instance = category_instance[0] if len(category_instance) != 0 else Category(name=unidecode(category).lower())
+            category_instance.save()
+
+            product.category = category_instance
             product.crawled = True
+            # print(2)
             product.save()
         except Exception as e:
             print(f"get category error product {product.id}: {e}")
@@ -402,18 +374,21 @@ def crawl_shopee_image_thread(product_list, thread_num):
 
 
 def shopee_scroll_to_end(driver):
-    height = driver.execute_script("return document.body.scrollHeight")
-    scroll_length = 0
-    scroll_step = 500
-    while scroll_length < height:
-        # print(scroll_length, height)
-        driver.execute_script(
-            f"window.scrollTo({scroll_length}, {scroll_length + scroll_step})")
-        scroll_length += scroll_step
-        time.sleep(0.5)
-        WebDriverWait(driver, 10).until(
-            EC.presence_of_all_elements_located((By.CSS_SELECTOR, "a[data-sqe=\"link\"]")))
+    try:
         height = driver.execute_script("return document.body.scrollHeight")
+        scroll_length = 0
+        scroll_step = 500
+        while scroll_length < height:
+            # print(scroll_length, height)
+            driver.execute_script(
+                f"window.scrollTo({scroll_length}, {scroll_length + scroll_step})")
+            scroll_length += scroll_step
+            time.sleep(0.5)
+            WebDriverWait(driver, 10).until(
+                EC.presence_of_all_elements_located((By.CSS_SELECTOR, "a[data-sqe=\"link\"]")))
+            height = driver.execute_script("return document.body.scrollHeight")
+    except Exception as e:
+        print("shopee scroll end error", e)
 
 
 def crawl_shopee_page(source, driver):
@@ -433,7 +408,6 @@ def crawl_shopee_page(source, driver):
 
         try:
             print(driver.current_url)
-            shopee_scroll_to_end(driver)
             try_time = 3
             if (driver.current_url == prev_url):
                 same += 1
@@ -445,6 +419,7 @@ def crawl_shopee_page(source, driver):
                 prev_url = driver.current_url 
                 same = 0
                 # print('new', same)
+            shopee_scroll_to_end(driver)
             
             new_product = False
             while try_time >= 0:
