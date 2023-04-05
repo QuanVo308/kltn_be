@@ -48,7 +48,7 @@ class ProductView(viewsets.GenericViewSet,
         
         return Response('re_crawl_category') 
 
-    @action(detail=False, methods=['get', 'post'])
+    @action(detail=False, methods=['get', 'post','delete'])
     def delete_product_fail_category(self, request):
         products = Product.objects.filter(Q(category__name = 'khac')|Q(category = None)).delete()
         return   Response('delete_product_fail_category')      
