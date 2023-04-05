@@ -27,28 +27,24 @@ class ProductView(viewsets.GenericViewSet,
 
     @action(detail=False, methods=['get', 'post'])
     def test(self, request):
-        # Category.objects.create(
-        #         name=unidecode(request.data['name']).lower())
-        # Category.objects.create(name=unidecode(request.data['name']).lower())
-        # Category.objects.create(
-        #         name=unidecode(request.data['name']).lower(), id = int(request.data['id1']))
+        
 
-        c = Category.objects.filter(id=463)[0]
-        c.save()
 
 
         return Response('test')
 
     @action(detail=False, methods=['get', 'post'])
     def re_crawl_category(self, request):
-        products = Product.objects.filter(Q(category__name = 'khac')|Q(category = None))
-        products = np.array_split(products, len(products)/60)
-        
-        if len(products) > 0:
-            for i in range(len(products)):
-                print(i)
-                crawl_shopee_image_multithread(
-                    products[i], recrawl=True, try_time=0)
+        for _ in range(2):
+            products = Product.objects.filter(Q(category__name = 'khac')|Q(category = None))
+            print(len(products))
+            products = np.array_split(products, len(products)/60)
+            
+            if len(products) > 0:
+                for i in range(len(products)):
+                    print(i)
+                    crawl_shopee_image_multithread(
+                        products[i], recrawl=True, try_time=0)
         return Response('re_crawl_category')        
 
     @action(detail=False, methods=['get', 'post'])
@@ -59,7 +55,7 @@ class ProductView(viewsets.GenericViewSet,
         product_list = [
             product for product in products if product.image_count == 0]
         print(len(product_list))
-        return Response('test')
+        return Response(len(product_list))
 
     @action(detail=False, methods=['get', 'post'])
     def test_product_exist(self, request):

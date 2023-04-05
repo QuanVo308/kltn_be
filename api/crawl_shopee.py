@@ -267,7 +267,7 @@ def crawl_shopee_image(product, driver):
 
         for i in range(2):
             try:
-                image_menu = WebDriverWait(driver, 2).until(
+                image_menu = WebDriverWait(driver, 1).until(
                     EC.element_to_be_clickable((By.CSS_SELECTOR, f"button.shopee-icon-button.JaQdda.Xr3frH")))
                 for _ in range(5):
                     image_menu.click()
