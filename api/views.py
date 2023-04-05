@@ -35,7 +35,7 @@ class ProductView(viewsets.GenericViewSet,
 
     @action(detail=False, methods=['get', 'post'])
     def re_crawl_category(self, request):
-        for _ in range(2):
+        for _ in range(3):
             products = Product.objects.filter(Q(category__name = 'khac')|Q(category = None))
             print(len(products))
             products = np.array_split(products, len(products)/60)
@@ -45,7 +45,13 @@ class ProductView(viewsets.GenericViewSet,
                     print(i)
                     crawl_shopee_image_multithread(
                         products[i], recrawl=True, try_time=0)
-        return Response('re_crawl_category')        
+        
+        return Response('re_crawl_category') 
+
+    @action(detail=False, methods=['get', 'post'])
+    def delete_product_fail_category(self, request):
+        products = Product.objects.filter(Q(category__name = 'khac')|Q(category = None)).delete()
+        return   Response('delete_product_fail_category')      
 
     @action(detail=False, methods=['get', 'post'])
     def count_no_image(self, request):
