@@ -13,6 +13,9 @@ import io
 from django.core.files import File
 from django.db.models import Count
 # from .execute import *
+import zipfile
+import tempfile
+import binascii
 
 
 class ProductView(viewsets.GenericViewSet,
@@ -27,10 +30,17 @@ class ProductView(viewsets.GenericViewSet,
 
     @action(detail=False, methods=['get', 'post'])
     def test(self, request):
-        
-
-
-
+        file = request.FILES.get('file', None)
+        print(file)
+        zf = zipfile.ZipFile(file)
+        print(zf)
+        with tempfile.TemporaryDirectory() as tempdir:
+            zf.extractall(tempdir)
+            print(tempdir)
+            base_dir = pathlib.Path(tempdir)
+            for path in base_dir.glob("*"):
+                print(path, time.time() - os.path.getctime(path))
+        print(binascii.hexlify(os.urandom(10)))
         return Response('test')
 
     @action(detail=False, methods=['get', 'post'])
@@ -77,6 +87,8 @@ class ProductView(viewsets.GenericViewSet,
         print(len(products))
         if len(products) != 0:
             print(products[0])
+            return Response(ProductSerializer(products, many=True).data)
+
         else:
             print("cannot find any product")
         return Response('test')

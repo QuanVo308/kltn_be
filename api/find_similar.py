@@ -6,7 +6,7 @@ def get_similar_products_multithread(anchor_product, anchor_images):
     quantity = len(compare_products)
     result = {}
 
-    total_thread = os.cpu_count() * 8
+    total_thread = 4
     threads = []
     for thread_num in range(total_thread):
         temp_list = []
