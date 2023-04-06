@@ -12,10 +12,11 @@ from django.http import FileResponse
 import io
 from django.core.files import File
 from django.db.models import Count
-# from .execute import *
-import zipfile
-import tempfile
 import binascii
+import pyunpack
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
+from .execute import *
 
 
 class ProductView(viewsets.GenericViewSet,
@@ -30,18 +31,71 @@ class ProductView(viewsets.GenericViewSet,
 
     @action(detail=False, methods=['get', 'post'])
     def test(self, request):
-        file = request.FILES.get('file', None)
-        print(file)
-        zf = zipfile.ZipFile(file)
-        print(zf)
-        with tempfile.TemporaryDirectory() as tempdir:
-            zf.extractall(tempdir)
-            print(tempdir)
-            base_dir = pathlib.Path(tempdir)
-            for path in base_dir.glob("*"):
-                print(path, time.time() - os.path.getctime(path))
-        print(binascii.hexlify(os.urandom(10)))
+        base_dir = pathlib.Path('temp')
+        for path in base_dir.glob("*"):
+            create_time = time.time() - os.path.getctime(path)
+            print(path, time.time() - os.path.getctime(path))
+            if create_time > 3600:
+                try:
+                    shutil.rmtree(str(path.resolve()))
+                except:
+                    pass
+                try: 
+                    os.remove(str(path.resolve()))
+                except:
+                    pass
+
         return Response('test')
+
+    @action(detail=False, methods=['get', 'post'])
+    def cleanup_temp(self, request):
+        base_dir = pathlib.Path('temp')
+        for path in base_dir.glob("*"):
+            create_time = time.time() - os.path.getctime(path)
+            print(path, time.time() - os.path.getctime(path))
+            if create_time > int(request.GET('seconds')):
+                try:
+                    shutil.rmtree(str(path.resolve()))
+                except:
+                    pass
+                try: 
+                    os.remove(str(path.resolve()))
+                except:
+                    pass
+
+        return Response('cleanup_temp')
+    
+    @action(detail=False, methods=['get', 'post'])
+    def upload_zip(self, request):
+        file = request.FILES.get('file', None)
+
+        file_path = f'temp/{binascii.hexlify(os.urandom(10)).decode("utf8")}_{file.name}'
+        folder_path = file_path.split('.')[0]
+        
+        path = default_storage.save(file_path, ContentFile(file.read()))
+        # print(path)
+
+        if not os.path.exists("temp/"):
+            os.makedirs("temp")
+        
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
+
+        pyunpack.Archive(file_path).extractall(folder_path)
+     
+        base_dir = pathlib.Path(folder_path)
+        image_paths = []
+        for path in base_dir.glob("*"):
+            image_paths.append(str(path))
+            print(path, time.time() - os.path.getctime(path))
+
+        return Response({'folder_path': folder_path, 'image_paths':image_paths})
+
+    @action(detail=False, methods=['get', 'post'])
+    def get_temp_image(self, request):
+        img = open(request.GET['path'], 'rb')
+        response = FileResponse(img)
+        return response
 
     @action(detail=False, methods=['get', 'post'])
     def re_crawl_category(self, request):

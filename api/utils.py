@@ -1,3 +1,5 @@
+from multiprocessing.pool import ThreadPool
+from rembg import remove, new_session
 import numpy as np
 from rest_framework import exceptions
 from tensorflow import keras
@@ -36,12 +38,10 @@ import gc
 import cv2
 from dotenv import load_dotenv
 load_dotenv()
-from rembg import remove, new_session
-from multiprocessing.pool import ThreadPool
 
 
 TRAINNED_MODEL = "temp"
-# TRAINNED_MODEL = keras.models.load_model(os.environ.get('TRAINNED_MODEL_PATH'))
+TRAINNED_MODEL = keras.models.load_model(os.environ.get('TRAINNED_MODEL_PATH'))
 THREAD_QUANTITY_CRAWL_PRODUCT = int(
     os.environ.get('THREAD_QUANTITY_CRAWL_PRODUCT'))
 THREAD_NUMBER_LINK_SOURCE = int(
@@ -206,6 +206,7 @@ def exact_embedding_from_link(link):
         raise exceptions.ValidationError('exacting image from link error')
         return []
 
+
 def update_exact_image_multithread_rembg(i, total):
     print('loading image')
     products = np.array_split(list(Product.objects.all()), total)[i]
@@ -223,13 +224,13 @@ def update_exact_image_multithread_rembg(i, total):
             images.extend(list(product.images.all()))
 
         with ThreadPool(processes=thread_num) as pool:
-            results = pool.imap_unordered(exact_embedding_images_rembg, np.array_split(images, thread_num))
+            results = pool.imap_unordered(
+                exact_embedding_images_rembg, np.array_split(images, thread_num))
             for result in results:
                 pass
         start += step
-        if start >= max_len: 
+        if start >= max_len:
             break
-
 
 
 def exact_embedding_images_rembg(images):
@@ -237,10 +238,12 @@ def exact_embedding_images_rembg(images):
     for image in images:
         # print(image.id)
         try:
-            image.embedding_vector = exact_embedding_from_link_rembg(image.link, session)
+            image.embedding_vector = exact_embedding_from_link_rembg(
+                image.link, session)
             image.save()
         except Exception as e:
             print(f'image {image.id} new exact error', e)
+
 
 def exact_embedding_from_link_rembg(link, session):
     try:
@@ -248,9 +251,9 @@ def exact_embedding_from_link_rembg(link, session):
         image = PIL.Image.open(BytesIO(response.content))
 
         image_rmbg = remove(image, session=session)
-            # Create a white rgb background
-        new_image = PIL.Image.new("RGB", image_rmbg.size, "WHITE") 
-        new_image.paste(image_rmbg, mask = image_rmbg.split()[3])
+        # Create a white rgb background
+        new_image = PIL.Image.new("RGB", image_rmbg.size, "WHITE")
+        new_image.paste(image_rmbg, mask=image_rmbg.split()[3])
 
         image = new_image.resize(size=(200, 245))
         image_arr = np.asarray(image)/255.
@@ -266,6 +269,7 @@ def exact_embedding_from_link_rembg(link, session):
         # print('exacting image from link error', e)
         raise exceptions.ValidationError('exacting image from link error')
         return []
+
 
 def get_not_crawl_products(product_list):
     ps = [product for product in product_list if product.crawled == False]
