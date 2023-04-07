@@ -36,12 +36,16 @@ import random
 from django.db.models import Q
 import gc
 import cv2
+import binascii
+import pyunpack
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
 from dotenv import load_dotenv
 load_dotenv()
 
 
 TRAINNED_MODEL = "temp"
-# TRAINNED_MODEL = keras.models.load_model(os.environ.get('TRAINNED_MODEL_PATH'))
+TRAINNED_MODEL = keras.models.load_model(os.environ.get('TRAINNED_MODEL_PATH'))
 THREAD_QUANTITY_CRAWL_PRODUCT = int(
     os.environ.get('THREAD_QUANTITY_CRAWL_PRODUCT'))
 THREAD_NUMBER_LINK_SOURCE = int(
@@ -139,12 +143,9 @@ def update_exact_image_multithread():
     quantity = len(images)
     total_thread = os.cpu_count()
     threads = []
-    # model = load_models()
+    images = np.array_split(images, total_thread)
     for thread_num in range(total_thread):
-        threads.append(PropagatingThread(target=exact_image_thread, args=(images[
-            int(quantity/total_thread * thread_num):
-            int(quantity/total_thread * (thread_num + 1))
-        ],)))
+        threads.append(PropagatingThread(target=exact_image_thread, args=(images[thread_num],)))
 
     for thread in threads:
         thread.start()
@@ -170,11 +171,9 @@ def delete_all_product_multithread():
     quantity = len(products)
     total_thread = os.cpu_count() * 8
     threads = []
+    products = np.array_split(products, total_thread)
     for thread_num in range(total_thread):
-        threads.append(PropagatingThread(target=delete_product, args=(products[
-            int(quantity/total_thread * thread_num):
-            int(quantity/total_thread * (thread_num + 1))
-        ],)))
+        threads.append(PropagatingThread(target=delete_product, args=(products[thread_num],)))
 
     for thread in threads:
         thread.start()
@@ -342,3 +341,40 @@ def find_product(name='', category_ids=['']):
     max_len = min(600, len(products))
 
     return products[:max_len]
+
+def get_product_from_category_ids(category_ids):
+    categories = find_categories(category_ids)
+    category_queries = Q()
+    for category in categories:
+        category_queries |= Q(category=category)
+    products = Product.objects.filter(category_queries)
+    return products
+
+def exact_image_embedding_from_zip(file):
+    file_path = f'temp/{binascii.hexlify(os.urandom(10)).decode("utf8")}_{file.name}'
+    folder_path = file_path.split('.')[0]
+
+    path = default_storage.save(file_path, ContentFile(file.read()))
+
+    if not os.path.exists("temp/"):
+        os.makedirs("temp")
+
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+
+    pyunpack.Archive(file_path).extractall(folder_path)
+
+    base_dir = pathlib.Path(folder_path)
+    image_paths = []
+    anchor_images = []
+    for path in base_dir.glob("*"):
+        image_paths.append(str(path))
+        image = PIL.Image.open(pathlib.Path(path))
+        image = image.resize(size=(200, 245))
+        image_arr = np.asarray(image)/255.
+        embedding_vector = TRAINNED_MODEL.predict(
+            np.stack([image_arr]), verbose=0)
+        anchor_images.append({
+            'image_path': str(path),
+            'embedding_vector':  embedding_vector})
+    return anchor_images

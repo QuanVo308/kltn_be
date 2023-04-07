@@ -41,11 +41,12 @@ def cleanup_temp_folder():
             except:
                 pass
 
-
+"""get random product"""
 scheduler.add_job(get_random_product, 'interval', minutes=10)
 scheduler.add_job(get_random_product, 'interval', seconds=2,
                   end_date=timezone.now()+datetime.timedelta(0, 3))
 
+"""cleanup temp folder"""
 scheduler.add_job(cleanup_temp_folder, 'interval', minutes=10)
 
 

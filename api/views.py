@@ -12,10 +12,6 @@ from django.http import FileResponse
 import io
 from django.core.files import File
 from django.db.models import Count
-import binascii
-import pyunpack
-from django.core.files.storage import default_storage
-from django.core.files.base import ContentFile
 from .execute import *
 
 
@@ -68,28 +64,15 @@ class ProductView(viewsets.GenericViewSet,
     @action(detail=False, methods=['get', 'post'])
     def upload_zip(self, request):
         file = request.FILES.get('file', None)
+        category_ids = [int(category) for category in request.data['categories'].split(',')]
+
 
         file_path = f'temp/{binascii.hexlify(os.urandom(10)).decode("utf8")}_{file.name}'
         folder_path = file_path.split('.')[0]
         
-        path = default_storage.save(file_path, ContentFile(file.read()))
-        # print(path)
+        result = find_similar_from_zip(file, category_ids)
 
-        if not os.path.exists("temp/"):
-            os.makedirs("temp")
-        
-        if not os.path.exists(folder_path):
-            os.makedirs(folder_path)
-
-        pyunpack.Archive(file_path).extractall(folder_path)
-     
-        base_dir = pathlib.Path(folder_path)
-        image_paths = []
-        for path in base_dir.glob("*"):
-            image_paths.append(str(path))
-            print(path, time.time() - os.path.getctime(path))
-
-        return Response({'folder_path': folder_path, 'image_paths':image_paths})
+        return Response(result)
 
     @action(detail=False, methods=['get', 'post'])
     def get_temp_image(self, request):
