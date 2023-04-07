@@ -62,7 +62,7 @@ otps.add_argument("--log-level=3")
 
 
 otps2 = webdriver.ChromeOptions()
-# otps2.add_argument('--headless')
+otps2.add_argument('--headless')
 otps2.add_argument("--disable-extensions")
 otps2.add_argument("--disable-logging")
 otps2.add_argument("--log-level=3")
@@ -145,7 +145,8 @@ def update_exact_image_multithread():
     threads = []
     images = np.array_split(images, total_thread)
     for thread_num in range(total_thread):
-        threads.append(PropagatingThread(target=exact_image_thread, args=(images[thread_num],)))
+        threads.append(PropagatingThread(
+            target=exact_image_thread, args=(images[thread_num],)))
 
     for thread in threads:
         thread.start()
@@ -173,7 +174,8 @@ def delete_all_product_multithread():
     threads = []
     products = np.array_split(products, total_thread)
     for thread_num in range(total_thread):
-        threads.append(PropagatingThread(target=delete_product, args=(products[thread_num],)))
+        threads.append(PropagatingThread(
+            target=delete_product, args=(products[thread_num],)))
 
     for thread in threads:
         thread.start()
@@ -342,6 +344,7 @@ def find_product(name='', category_ids=['']):
 
     return products[:max_len]
 
+
 def get_product_from_category_ids(category_ids):
     categories = find_categories(category_ids)
     category_queries = Q()
@@ -349,6 +352,7 @@ def get_product_from_category_ids(category_ids):
         category_queries |= Q(category=category)
     products = Product.objects.filter(category_queries)
     return products
+
 
 def exact_image_embedding_from_zip(file):
     file_path = f'temp/{binascii.hexlify(os.urandom(10)).decode("utf8")}_{file.name}'

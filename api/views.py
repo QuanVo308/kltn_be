@@ -13,8 +13,6 @@ import io
 from django.core.files import File
 from django.db.models import Count
 from .execute import *
-
-
 class ProductView(viewsets.GenericViewSet,
                   mixins.CreateModelMixin,
                   mixins.RetrieveModelMixin,

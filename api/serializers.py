@@ -46,7 +46,7 @@ class ProductSearchSerializer(serializers.ModelSerializer):
             images.append(ImageSerializer(obj.images.all()[0]).data)
             return images
         except:
-            return [{'link':'cannot find'}]
+            return [{'link': 'cannot find'}]
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -68,10 +68,11 @@ class ProductSerializer(serializers.ModelSerializer):
 
 class CategorySerializer(serializers.ModelSerializer):
     quantity = SerializerMethodCustomField(read_only=True)
+
     class Meta:
         model = Category
         fields = '__all__'
-    
+
     def get_quantity(self, obj):
         # print(obj.products.all())
         return len(obj.products.all())

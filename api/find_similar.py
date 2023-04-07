@@ -112,6 +112,7 @@ def find_similar_from_zip(file, category_ids):
     max_len = min(300, len(all_result))
     return all_result[:max_len]
 
+
 def get_similar_products_zip_thread(anchor_images, test_products, temp_list):
     quantiy = len(test_products)
     count = 0
@@ -121,7 +122,8 @@ def get_similar_products_zip_thread(anchor_images, test_products, temp_list):
         temp_list.append(calculate_best_similar_product_zip(
             anchor_images, test_product))
     return temp_list
-        
+
+
 def calculate_best_similar_product_zip(anchor_images, test_product):
     best_similar = {"euclidean_distance": float(
         'inf'), "cosine_distance": 0}
@@ -131,7 +133,8 @@ def calculate_best_similar_product_zip(anchor_images, test_product):
     for anchor_image in anchor_images:
         for test_image in test_product_images:
             try:
-                distance = calculate_similar_image_zip(anchor_image, test_image)
+                distance = calculate_similar_image_zip(
+                    anchor_image, test_image)
                 # print("check", distance)
                 if distance["euclidean_distance"] < best_similar["euclidean_distance"] or distance["cosine_distance"] > best_similar["cosine_distance"]:
                     # print("new best", distance, best_similar)
