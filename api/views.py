@@ -46,8 +46,8 @@ class ProductView(viewsets.GenericViewSet,
         base_dir = pathlib.Path('temp')
         for path in base_dir.glob("*"):
             create_time = time.time() - os.path.getctime(path)
-            print(path, time.time() - os.path.getctime(path))
-            if create_time > int(request.GET('seconds')):
+            # print(path, time.time() - os.path.getctime(path))
+            if create_time > int(int(request.GET.get('seconds', 3600))):
                 try:
                     shutil.rmtree(str(path.resolve()))
                 except:
