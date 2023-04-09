@@ -193,8 +193,16 @@ def exact_embedding_from_link(link):
     try:
         response = requests.get(link, timeout=3)
         image = PIL.Image.open(BytesIO(response.content))
+
+        if np.asarray(image).shape[2] != 3:
+            new_image = PIL.Image.new("RGB", image.size, "WHITE") 
+            new_image.paste(image, mask = image.split()[3])
+            image = new_image
+
         image = image.resize(size=(200, 245))
         image_arr = np.asarray(image)/255.
+        
+        
         embedding_vector = TRAINNED_MODEL.predict(
             np.stack([image_arr]), verbose=0).tolist()
         gc.collect()
@@ -374,8 +382,15 @@ def exact_image_embedding_from_zip(file):
     for path in base_dir.glob("*"):
         image_paths.append(str(path))
         image = PIL.Image.open(pathlib.Path(path))
+
+        if np.asarray(image).shape[2] != 3:
+            new_image = PIL.Image.new("RGB", image.size, "WHITE") 
+            new_image.paste(image, mask = image.split()[3])
+            image = new_image
+
         image = image.resize(size=(200, 245))
         image_arr = np.asarray(image)/255.
+
         embedding_vector = TRAINNED_MODEL.predict(
             np.stack([image_arr]), verbose=0)
         anchor_images.append({
