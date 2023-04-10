@@ -139,6 +139,34 @@ def crawl_shopee_all():
             print("crawl shopee all error ", e)
 
 
+def crawl_shopee_specified(source_queries):
+    """
+    crawl specified of shopee sources, product, image with multithread
+    """
+
+    try_time = 3
+    # try again if any error occur
+    while try_time >= 0:
+        try:
+            try_time -= 1
+            sources = SourceData.objects.filter(source_queries)
+            threads = []
+            # distribute source for threads
+            for thread_num in range(0, THREAD_NUMBER_LINK_SOURCE):
+                threads.append(PropagatingThread(
+                    target=crawl_shopee_page_multithread, args=(sources, thread_num,)))
+            for thread in threads:
+                thread.start()
+            for thread in threads:
+                thread.join()
+
+            sources = SourceData.objects.filter(source_queries)
+            if len(sources) == 0:
+                return
+        except Exception as e:
+            print("crawl shopee all error ", e)
+
+
 def crawl_shopee_page_multithread(sources, thread_num):
     """
     decide which source of each thread belong to and init webdriver

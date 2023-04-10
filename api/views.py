@@ -13,6 +13,8 @@ import io
 from django.core.files import File
 from django.db.models import Count
 from .execute import *
+
+
 class ProductView(viewsets.GenericViewSet,
                   mixins.CreateModelMixin,
                   mixins.RetrieveModelMixin,
@@ -34,7 +36,7 @@ class ProductView(viewsets.GenericViewSet,
                     shutil.rmtree(str(path.resolve()))
                 except:
                     pass
-                try: 
+                try:
                     os.remove(str(path.resolve()))
                 except:
                     pass
@@ -52,22 +54,22 @@ class ProductView(viewsets.GenericViewSet,
                     shutil.rmtree(str(path.resolve()))
                 except:
                     pass
-                try: 
+                try:
                     os.remove(str(path.resolve()))
                 except:
                     pass
 
         return Response('cleanup_temp')
-    
+
     @action(detail=False, methods=['get', 'post'])
     def upload_zip(self, request):
         file = request.FILES.get('file', None)
-        category_ids = [int(category) for category in request.data['categories'].split(',')]
-
+        category_ids = [int(category)
+                        for category in request.data['categories'].split(',')]
 
         file_path = f'temp/{binascii.hexlify(os.urandom(10)).decode("utf8")}_{file.name}'
         folder_path = file_path.split('.')[0]
-        
+
         result = find_similar_from_zip(file, category_ids)
 
         return Response(result)
@@ -81,22 +83,24 @@ class ProductView(viewsets.GenericViewSet,
     @action(detail=False, methods=['get', 'post'])
     def re_crawl_category(self, request):
         for _ in range(3):
-            products = Product.objects.filter(Q(category__name = 'khac')|Q(category = None))
+            products = Product.objects.filter(
+                Q(category__name='khac') | Q(category=None))
             print(len(products))
             products = np.array_split(products, len(products)/60)
-            
+
             if len(products) > 0:
                 for i in range(len(products)):
                     print(i)
                     crawl_shopee_image_multithread(
                         products[i], recrawl=True, try_time=0)
-        
-        return Response('re_crawl_category') 
 
-    @action(detail=False, methods=['get', 'post','delete'])
+        return Response('re_crawl_category')
+
+    @action(detail=False, methods=['get', 'post', 'delete'])
     def delete_product_fail_category(self, request):
-        products = Product.objects.filter(Q(category__name = 'khac')|Q(category = None)).delete()
-        return   Response('delete_product_fail_category')      
+        products = Product.objects.filter(
+            Q(category__name='khac') | Q(category=None)).delete()
+        return Response('delete_product_fail_category')
 
     @action(detail=False, methods=['get', 'post'])
     def count_no_image(self, request):
@@ -249,6 +253,29 @@ class ProductView(viewsets.GenericViewSet,
         print(end - start)
         return Response(end - start)
 
+    @action(detail=False, methods=['get'], url_path="crawl_specified")
+    def crawl_all_data_specified(self, request):
+        start = timezone.now()
+        source_ids = request.data['source']
+
+        source_queries = Q()
+        for source_id in source_ids:
+            source_queries |= Q(id = source_id)
+        
+        source_queries &= Q(crawled__in=[False])
+        
+        source_data = SourceData.objects.filter(source_queries)
+        
+        print(source_data)
+
+        crawl_shopee_specified(source_queries)
+
+
+
+        end = timezone.now()
+        print(end - start)
+        return Response(end - start)
+
     @action(detail=False, methods=['get'])
     def crawl_data_source(self, request):
         start = timezone.now()
@@ -350,8 +377,8 @@ class ProductTestView(viewsets.GenericViewSet,
             image = PIL.Image.open(pathlib.Path(product.image_path))
             image_rmbg = remove(image, session=session)
             # Create a white rgb background
-            new_image = PIL.Image.new("RGB", image_rmbg.size, "WHITE") 
-            new_image.paste(image_rmbg, mask = image_rmbg.split()[3])
+            new_image = PIL.Image.new("RGB", image_rmbg.size, "WHITE")
+            new_image.paste(image_rmbg, mask=image_rmbg.split()[3])
 
             image = new_image.resize(size=(200, 245))
             image_arr = np.asarray(image)/255.
@@ -359,7 +386,6 @@ class ProductTestView(viewsets.GenericViewSet,
                 np.stack([image_arr]), verbose=0)
             product.embedding_vector = embedding_vector.tolist()
             product.save()
-        
 
         return Response("ok")
 
@@ -384,7 +410,6 @@ class ProductTestView(viewsets.GenericViewSet,
                 np.stack([image_arr]), verbose=0)
             product.embedding_vector = embedding_vector.tolist()
             product.save()
-        
 
         return Response("ok")
 
