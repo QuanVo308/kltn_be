@@ -212,46 +212,55 @@ def exact_embedding_from_link(link):
         gc.collect()
         tf.keras.backend.clear_session()
         # print('exacting image from link error', e)
-        raise exceptions.ValidationError('exacting image from link error')
+        raise exceptions.ValidationError('exacting image from link error {e}')
         return []
 
 
-def update_exact_image_multithread_rembg(i, total):
-    print('loading image')
-    products = np.array_split(list(Product.objects.all()), total)[i]
-    print('loading done', len(products))
-    step = 20
-    thread_num = 4
-    start = 0
-    max_len = len(products)
-    while True:
-        end = min(max_len, start + step)
-        print(start, end, max_len)
-
-        images = []
-        for product in products[start:end]:
-            images.extend(list(product.images.all()))
-
-        with ThreadPool(processes=thread_num) as pool:
-            results = pool.imap_unordered(
-                exact_embedding_images_rembg, np.array_split(images, thread_num))
-            for result in results:
-                pass
-        start += step
-        if start >= max_len:
-            break
-
-
-def exact_embedding_images_rembg(images):
+def update_exact_image_multithread_rembg():
     session = new_session()
-    for image in images:
-        # print(image.id)
+    for _ in range(2):
         try:
-            image.embedding_vector = exact_embedding_from_link_rembg(
-                image.link, session)
-            image.save()
+            print('loading image')
+            products = list(Product.objects.filter(rembg__in=[False]))
+            products = np.array_split(products, THREAD_QUANTITY_CRAWL_PRODUCT)
+            print('loading done', len(products))
+            threads = []
+            for thread_num in range(THREAD_QUANTITY_CRAWL_PRODUCT):
+                threads.append(PropagatingThread(
+                    target=exact_embedding_images_rembg, args=(products[thread_num], session, )))
+
+            for thread in threads:
+                thread.start()
+            for thread in threads:
+                thread.join()
+
+            products = list(Product.objects.filter(rembg__in=[False]))
+            if len(products) == 0:
+                break
+
         except Exception as e:
-            print(f'image {image.id} new exact error', e)
+            print('exact rembg error', e)
+
+
+def exact_embedding_images_rembg(products, session):
+
+    for product in products:
+        print(product.id)
+        fail = 0
+        for image in product.images.all():
+            for _ in range(2):
+                try:
+                    fail += 1
+                    image.embedding_vector = exact_embedding_from_link_rembg(
+                        image.link, session)
+                    image.save()
+                    fail -= 1
+                    break
+                except Exception as e:
+                    print(f'product {product.id} image {image.id} new exact error', e)
+        if fail == 0:
+            product.rembg = True
+            product.save()
 
 
 def exact_embedding_from_link_rembg(link, session):
@@ -276,7 +285,7 @@ def exact_embedding_from_link_rembg(link, session):
         gc.collect()
         tf.keras.backend.clear_session()
         # print('exacting image from link error', e)
-        raise exceptions.ValidationError('exacting image from link error')
+        raise exceptions.ValidationError(f'exacting image from link error {e}')
         return []
 
 

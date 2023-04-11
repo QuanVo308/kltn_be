@@ -49,6 +49,7 @@ class Product(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE,
                                  related_name='products', null=True)
     crawled = models.BooleanField(default=False)
+    rembg = models.BooleanField(default=False)
     updated_at = models.DateTimeField(auto_now=True,
                                       help_text='Thời gian cập nhật')
     created_at = models.DateTimeField(auto_now_add=True,

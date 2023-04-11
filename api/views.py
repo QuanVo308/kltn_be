@@ -27,11 +27,8 @@ class ProductView(viewsets.GenericViewSet,
 
     @action(detail=False, methods=['get', 'post'])
     def test(self, request):
-        product = Category.objects.filter(id=989)[0].products.all()[0]
-        driver = webdriver.Chrome(service=Service(
-            ChromeDriverManager().install()), options=otps2)
-
-        crawl_shopee_image(product, driver)
+        products = Product.objects.filter(rembg__in=[False])
+        print(len(products))
 
         return Response('test')
 
@@ -212,12 +209,7 @@ class ProductView(viewsets.GenericViewSet,
 
     @action(detail=False, methods=['get'])
     def image_exaction_update_rembg(self, request):
-
-        total = 10
-        for i in range(total):
-            print(f'{i+1}/{total}')
-            update_exact_image_multithread_rembg(i, total)
-
+        update_exact_image_multithread_rembg()
         return Response('update image')
 
     @action(detail=False, methods=['get'])
