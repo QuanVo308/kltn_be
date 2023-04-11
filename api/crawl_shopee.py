@@ -316,7 +316,8 @@ def crawl_shopee_image(product, driver):
             category = soup.select(".dR8kXc a.akCPfg:last-of-type")[0].text
             # print(category)
             if unidecode(category).lower() == 'khac':
-                addition_category = soup.select(".dR8kXc a.akCPfg:nth-last-child(3)")[0].text
+                addition_category = soup.select(
+                    ".dR8kXc a.akCPfg:nth-last-child(3)")[0].text
                 # print(addition_category)
                 category = f'{addition_category} {category}'
                 # print(category)
@@ -324,8 +325,10 @@ def crawl_shopee_image(product, driver):
 
             category_instance = Category.objects.filter(
                 name=unidecode(category).lower())
-            
-            category_instance = category_instance[0] if len(category_instance) != 0 else Category(name=unidecode(category).lower())
+
+            category_instance = category_instance[0] if len(
+                category_instance) != 0 else Category(name=unidecode(category).lower())
+            category_instance.name_raw = category
             category_instance.save()
 
             product.category = category_instance
@@ -444,11 +447,11 @@ def crawl_shopee_page(source, driver):
                 if same == 2:
                     driver.get(driver.current_url)
             else:
-                prev_url = driver.current_url 
+                prev_url = driver.current_url
                 same = 0
                 # print('new', same)
             shopee_scroll_to_end(driver)
-            
+
             new_product = False
             while try_time >= 0:
 
@@ -516,3 +519,50 @@ def crawl_shopee_page(source, driver):
     source.save()
     gc.collect()
     # driver.quit()
+
+
+def update_category_raw_name_multithread():
+    categories = Category.objects.filter(name_raw='')
+    print(len(categories))
+
+    categories = np.array_split(categories, THREAD_QUANTITY_CRAWL_PRODUCT)
+
+    for _ in range(2):
+        try:
+            threads = []
+            l = len(categories)
+            if l == 0:
+                return
+            for thread_num in range(0, THREAD_QUANTITY_CRAWL_PRODUCT):
+                threads.append(PropagatingThread(
+                    target=update_category_raw_namethread, args=(categories[thread_num],)))
+            for thread in threads:
+                thread.start()
+            for thread in threads:
+                thread.join()
+            break
+
+        except Exception as e:
+            print("shopee update raw name category error", e)
+            pass
+
+
+def update_category_raw_namethread(categories):
+    driver = webdriver.Chrome(service=Service(
+        ChromeDriverManager().install()), options=otps2)
+
+    
+    for category in categories:
+        l = len(category.products.all())
+        print(category.id, l)
+        if l == 0:
+            category.delete()
+            print("no product", category.id, l)
+            continue
+        for i in range(5):
+            try:
+                product = category.products.all()[i]
+                crawl_shopee_image(product, driver)
+                break
+            except Exception as e:
+                print(f'shopee update cate by pro err: {i} {e}')

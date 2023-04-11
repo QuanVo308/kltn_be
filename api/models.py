@@ -22,6 +22,7 @@ class ProductTest(models.Model):
 
 class Category(models.Model):
     name = models.CharField(max_length=250)
+    name_raw = models.CharField(max_length=250, default='')
 
     def __str__(self):
         return f"{self.name}"

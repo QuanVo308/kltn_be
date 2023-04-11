@@ -27,20 +27,17 @@ class ProductView(viewsets.GenericViewSet,
 
     @action(detail=False, methods=['get', 'post'])
     def test(self, request):
-        base_dir = pathlib.Path('temp')
-        for path in base_dir.glob("*"):
-            create_time = time.time() - os.path.getctime(path)
-            print(path, time.time() - os.path.getctime(path))
-            if create_time > 3600:
-                try:
-                    shutil.rmtree(str(path.resolve()))
-                except:
-                    pass
-                try:
-                    os.remove(str(path.resolve()))
-                except:
-                    pass
+        product = Category.objects.filter(id=989)[0].products.all()[0]
+        driver = webdriver.Chrome(service=Service(
+            ChromeDriverManager().install()), options=otps2)
 
+        crawl_shopee_image(product, driver)
+
+        return Response('test')
+
+    @action(detail=False, methods=['get', 'post'])
+    def update_category_raw_name(self, request):
+        update_category_raw_name_multithread()
         return Response('test')
 
     @action(detail=False, methods=['get', 'post'])
@@ -260,17 +257,15 @@ class ProductView(viewsets.GenericViewSet,
 
         source_queries = Q()
         for source_id in source_ids:
-            source_queries |= Q(id = source_id)
-        
+            source_queries |= Q(id=source_id)
+
         source_queries &= Q(crawled__in=[False])
-        
+
         source_data = SourceData.objects.filter(source_queries)
-        
+
         print(source_data)
 
         crawl_shopee_specified(source_queries)
-
-
 
         end = timezone.now()
         print(end - start)
