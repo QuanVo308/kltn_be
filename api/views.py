@@ -27,7 +27,7 @@ class ProductView(viewsets.GenericViewSet,
 
     @action(detail=False, methods=['get', 'post'])
     def test(self, request):
-        products = Product.objects.filter(rembg__in=[False])
+        products = Product.objects.filter(rembg__in=[False]).exclude(id=719)
         print(len(products))
 
         return Response('test')

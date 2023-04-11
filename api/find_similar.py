@@ -42,7 +42,7 @@ def get_similar_products_thread(anchor_images, test_products, temp_list):
 
 def get_similar_product_category(anchor_product):
     category_products = Product.objects.filter(
-        category=anchor_product.category)
+        category=anchor_product.category).exclude(id=anchor_product.id)
     print(len(category_products))
     return category_products
 

@@ -46,6 +46,7 @@ load_dotenv()
 
 TRAINNED_MODEL = "temp"
 TRAINNED_MODEL = keras.models.load_model(os.environ.get('TRAINNED_MODEL_PATH'))
+# REMBG_SESSION = new_session()
 THREAD_QUANTITY_CRAWL_PRODUCT = int(
     os.environ.get('THREAD_QUANTITY_CRAWL_PRODUCT'))
 THREAD_NUMBER_LINK_SOURCE = int(
@@ -62,7 +63,7 @@ otps.add_argument("--log-level=3")
 
 
 otps2 = webdriver.ChromeOptions()
-otps2.add_argument('--headless')
+# otps2.add_argument('--headless')
 otps2.add_argument("--disable-extensions")
 otps2.add_argument("--disable-logging")
 otps2.add_argument("--log-level=3")
@@ -212,7 +213,7 @@ def exact_embedding_from_link(link):
         gc.collect()
         tf.keras.backend.clear_session()
         # print('exacting image from link error', e)
-        raise exceptions.ValidationError('exacting image from link error {e}')
+        raise exceptions.ValidationError(f'exacting image from link error {e}')
         return []
 
 
@@ -248,16 +249,20 @@ def exact_embedding_images_rembg(products, session):
         print(product.id)
         fail = 0
         for image in product.images.all():
+            image_fail = True
             for _ in range(2):
                 try:
                     fail += 1
                     image.embedding_vector = exact_embedding_from_link_rembg(
                         image.link, session)
                     image.save()
+                    image_fail = False
                     fail -= 1
                     break
                 except Exception as e:
                     print(f'product {product.id} image {image.id} new exact error', e)
+            if image_fail:
+                image.delete()
         if fail == 0:
             product.rembg = True
             product.save()

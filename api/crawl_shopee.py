@@ -174,6 +174,7 @@ def crawl_shopee_page_multithread(sources, thread_num):
     # sources = sources[:2]
 
     try:
+        # session = new_session()
         source_quantity = len(sources)
         for i in range(source_quantity):
             if i % THREAD_NUMBER_LINK_SOURCE == thread_num:
@@ -188,6 +189,7 @@ def crawl_shopee_page_multithread(sources, thread_num):
 
 
 def crawl_shopee_image(product, driver):
+    session = new_session()
     driver.get(product.link)
     try_times = 0
     crawled = True
@@ -276,8 +278,9 @@ def crawl_shopee_image(product, driver):
                         if check_update_expire(i):
                             i.link = f"{image_link}"
                             i.product = product
-                            i.embedding_vector = exact_embedding_from_link(
-                                i.link)
+                            # i.embedding_vector = exact_embedding_from_link(
+                            #     i.link)
+                            i.embedding_vector = exact_embedding_from_link_rembg(i.link, session)
                             next_button = True
                             i.save()
                             new_image = True
@@ -333,6 +336,7 @@ def crawl_shopee_image(product, driver):
 
             product.category = category_instance
             product.crawled = True
+            product.rembg = True
             # print(2)
             product.save()
         except Exception as e:
@@ -340,6 +344,7 @@ def crawl_shopee_image(product, driver):
 
 
 def crawl_shopee_image_multithread(product_list, recrawl=False, try_time=3):
+
     # try_time = 3
     while try_time >= 0:
         try:
@@ -423,6 +428,7 @@ def shopee_scroll_to_end(driver):
 
 
 def crawl_shopee_page(source, driver):
+    # session = new_session()
     link = source.link
     # driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=otps)
     same = 0
