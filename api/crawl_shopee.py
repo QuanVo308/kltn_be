@@ -324,7 +324,7 @@ def crawl_shopee_image(product, driver):
             # print(1)
 
             category_instance = Category.objects.filter(
-                name=unidecode(category).lower())
+                name_raw = category)
 
             category_instance = category_instance[0] if len(
                 category_instance) != 0 else Category(name=unidecode(category).lower())
