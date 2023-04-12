@@ -63,7 +63,7 @@ otps.add_argument("--log-level=3")
 
 
 otps2 = webdriver.ChromeOptions()
-# otps2.add_argument('--headless')
+otps2.add_argument('--headless')
 otps2.add_argument("--disable-extensions")
 otps2.add_argument("--disable-logging")
 otps2.add_argument("--log-level=3")
@@ -203,9 +203,9 @@ def exact_embedding_from_link(link):
         image = image.resize(size=(200, 245))
         image_arr = np.asarray(image)/255.
         
-        
-        embedding_vector = TRAINNED_MODEL.predict(
-            np.stack([image_arr]), verbose=0).tolist()
+        with tf.device('/device:CPU:0'):
+            embedding_vector = TRAINNED_MODEL.predict(
+                np.stack([image_arr]), verbose=0).tolist()
         gc.collect()
         tf.keras.backend.clear_session()
         return embedding_vector
@@ -281,8 +281,9 @@ def exact_embedding_from_link_rembg(link, session):
         image = new_image.resize(size=(200, 245))
         image_arr = np.asarray(image)/255.
 
-        embedding_vector = TRAINNED_MODEL.predict(
-            np.stack([image_arr]), verbose=0).tolist()
+        with tf.device('/device:CPU:0'):
+            embedding_vector = TRAINNED_MODEL.predict(
+                np.stack([image_arr]), verbose=0).tolist()
         gc.collect()
         tf.keras.backend.clear_session()
         return embedding_vector
@@ -405,8 +406,10 @@ def exact_image_embedding_from_zip(file):
         image = image.resize(size=(200, 245))
         image_arr = np.asarray(image)/255.
 
-        embedding_vector = TRAINNED_MODEL.predict(
-            np.stack([image_arr]), verbose=0)
+        with tf.device('/device:CPU:0'):
+            embedding_vector = TRAINNED_MODEL.predict(
+                np.stack([image_arr]), verbose=0)
+            
         anchor_images.append({
             'image_path': str(path),
             'embedding_vector':  embedding_vector})
