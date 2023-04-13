@@ -241,6 +241,8 @@ def exact_embedding_images_temp(products):
         fail = 0
         for image in product.images.all():
             image_fail = True
+            if image.embedding_vector_temp != [] or image.embedding_vector_temp is not None:
+                continue
             for _ in range(2):
                 try:
                     fail += 1
@@ -284,9 +286,6 @@ def exact_embedding_images_rembg(products, session):
         fail = 0
         for image in product.images.all():
             image_fail = True
-
-            if image.embedding_vector_temp != [] or image.embedding_vector_temp is not None:
-                continue
 
             for _ in range(2):
                 try:
