@@ -266,14 +266,14 @@ def exact_embedding_from_link_rembg(link, session):
     try:
         response = requests.get(link, timeout=3)
         image = PIL.Image.open(BytesIO(response.content))
+        image = image.resize(size=(200, 245))
 
         image_rmbg = remove(image, session=session)
         # Create a white rgb background
         new_image = PIL.Image.new("RGB", image_rmbg.size, "WHITE")
         new_image.paste(image_rmbg, mask=image_rmbg.split()[3])
 
-        image = new_image.resize(size=(200, 245))
-        image_arr = np.asarray(image)/255.
+        image_arr = np.asarray(new_image)/255.
 
         with tf.device('/device:CPU:0'):
             embedding_vector = TRAINNED_MODEL.predict(

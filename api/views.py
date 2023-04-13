@@ -225,7 +225,7 @@ class ProductView(viewsets.GenericViewSet,
             if len(products) == 0:
                 break
 
-        return Response('update image')
+        return Response('update image rembg')
 
     @action(detail=False, methods=['get'])
     def product_update(self, request):
@@ -364,7 +364,7 @@ class ProductTestView(viewsets.GenericViewSet,
         return response
 
     @action(detail=False, methods=['get'])
-    def image_exaction(self, request):
+    def image_exaction_rembg(self, request):
 
         # response = requests.get("https://cdn.britannica.com/45/5645-050-B9EC0205/head-treasure-flower-disk-flowers-inflorescence-ray.jpg")
         # t = PIL.Image.open(BytesIO(response.content))
@@ -377,13 +377,41 @@ class ProductTestView(viewsets.GenericViewSet,
         for product in products:
             print(f'calculating image {product.name}')
             image = PIL.Image.open(pathlib.Path(product.image_path))
+            image = image.resize(size=(200, 245))
             image_rmbg = remove(image, session=session)
             # Create a white rgb background
             new_image = PIL.Image.new("RGB", image_rmbg.size, "WHITE")
             new_image.paste(image_rmbg, mask=image_rmbg.split()[3])
 
-            image = new_image.resize(size=(200, 245))
-            image_arr = np.asarray(image)/255.
+            image_arr = np.asarray(new_image)/255.
+            embedding_vector = TRAINNED_MODEL.predict(
+                np.stack([image_arr]), verbose=0)
+            product.embedding_vector = embedding_vector.tolist()
+            product.save()
+
+        return Response("ok")
+
+    @action(detail=False, methods=['get'])
+    def image_exaction(self, request):
+
+        # response = requests.get("https://cdn.britannica.com/45/5645-050-B9EC0205/head-treasure-flower-disk-flowers-inflorescence-ray.jpg")
+        # t = PIL.Image.open(BytesIO(response.content))
+
+        print('loading model')
+        # m = load_models()
+        # session = new_session()
+
+        products = ProductTest.objects.all()
+        for product in products:
+            print(f'calculating image {product.name}')
+            image = PIL.Image.open(pathlib.Path(product.image_path))
+            image = image.resize(size=(200, 245))
+            # image_rmbg = remove(image, session=session)
+            # Create a white rgb background
+            new_image = PIL.Image.new("RGB", image.size, "WHITE")
+            new_image.paste(image, mask=image.split()[3])
+
+            image_arr = np.asarray(new_image)/255.
             embedding_vector = TRAINNED_MODEL.predict(
                 np.stack([image_arr]), verbose=0)
             product.embedding_vector = embedding_vector.tolist()
