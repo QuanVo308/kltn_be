@@ -31,6 +31,28 @@ class ProductView(viewsets.GenericViewSet,
         print(len(products))
 
         return Response('test')
+    
+    @action(detail=False, methods=['get', 'post'])
+    def temp_exact_image(self, request):
+
+        for _ in range(2):
+            print('loading image')
+            products = list(Product.objects.filter(rembg__in=[True]))
+            products = np.array_split(products, len(products)/60)
+            print('loading done', len(products))
+
+            for i in range(len(products)):
+                print(f'{i}/{len(products)}')
+                try:
+                    update_exact_image_multithread_temp(products[i])
+                except Exception as e:
+                    print('exact rembg error', e)
+            
+            products = list(Product.objects.filter(rembg__in=[True]))
+            if len(products) == 0:
+                break
+
+        return Response('test')
 
     @action(detail=False, methods=['get', 'post'])
     def update_category_raw_name(self, request):

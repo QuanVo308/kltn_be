@@ -216,6 +216,47 @@ def exact_embedding_from_link(link):
         raise exceptions.ValidationError(f'exacting image from link error {e}')
         return []
 
+def update_exact_image_multithread_temp(products):
+    try:
+        products = np.array_split(products, THREAD_QUANTITY_CRAWL_PRODUCT)
+        print('loading done', len(products))
+        threads = []
+        for thread_num in range(THREAD_QUANTITY_CRAWL_PRODUCT):
+            threads.append(PropagatingThread(
+                target=exact_embedding_images_temp, args=(products[thread_num], )))
+
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join()
+
+    except Exception as e:
+        print('exact rembg multi thread error', e)
+
+
+def exact_embedding_images_temp(products):
+
+    for product in products:
+        print(product.id)
+        fail = 0
+        for image in product.images.all():
+            image_fail = True
+            for _ in range(2):
+                try:
+                    fail += 1
+                    image.embedding_vector_temp = exact_embedding_from_link(image.link)
+                    image.save()
+                    image_fail = False
+                    fail -= 1
+                    break
+                except Exception as e:
+                    print(
+                        f'product {product.id} image {image.id} new exact error', e)
+            if image_fail:
+                image.delete()
+        if fail == 0:
+            product.rembg = True
+            product.save()
 
 def update_exact_image_multithread_rembg(products):
     session = new_session()
