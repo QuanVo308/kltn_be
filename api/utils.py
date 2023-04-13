@@ -196,13 +196,13 @@ def exact_embedding_from_link(link):
         image = PIL.Image.open(BytesIO(response.content))
 
         if np.asarray(image).shape[2] != 3:
-            new_image = PIL.Image.new("RGB", image.size, "WHITE") 
-            new_image.paste(image, mask = image.split()[3])
+            new_image = PIL.Image.new("RGB", image.size, "WHITE")
+            new_image.paste(image, mask=image.split()[3])
             image = new_image
 
         image = image.resize(size=(200, 245))
         image_arr = np.asarray(image)/255.
-        
+
         with tf.device('/device:CPU:0'):
             embedding_vector = TRAINNED_MODEL.predict(
                 np.stack([image_arr]), verbose=0).tolist()
@@ -217,30 +217,23 @@ def exact_embedding_from_link(link):
         return []
 
 
-def update_exact_image_multithread_rembg():
+def update_exact_image_multithread_rembg(products):
     session = new_session()
-    for _ in range(2):
-        try:
-            print('loading image')
-            products = list(Product.objects.filter(rembg__in=[False]))
-            products = np.array_split(products, THREAD_QUANTITY_CRAWL_PRODUCT)
-            print('loading done', len(products))
-            threads = []
-            for thread_num in range(THREAD_QUANTITY_CRAWL_PRODUCT):
-                threads.append(PropagatingThread(
-                    target=exact_embedding_images_rembg, args=(products[thread_num], session, )))
+    try:
+        products = np.array_split(products, THREAD_QUANTITY_CRAWL_PRODUCT)
+        print('loading done', len(products))
+        threads = []
+        for thread_num in range(THREAD_QUANTITY_CRAWL_PRODUCT):
+            threads.append(PropagatingThread(
+                target=exact_embedding_images_rembg, args=(products[thread_num], session, )))
 
-            for thread in threads:
-                thread.start()
-            for thread in threads:
-                thread.join()
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join()
 
-            products = list(Product.objects.filter(rembg__in=[False]))
-            if len(products) == 0:
-                break
-
-        except Exception as e:
-            print('exact rembg error', e)
+    except Exception as e:
+        print('exact rembg multi thread error', e)
 
 
 def exact_embedding_images_rembg(products, session):
@@ -260,7 +253,8 @@ def exact_embedding_images_rembg(products, session):
                     fail -= 1
                     break
                 except Exception as e:
-                    print(f'product {product.id} image {image.id} new exact error', e)
+                    print(
+                        f'product {product.id} image {image.id} new exact error', e)
             if image_fail:
                 image.delete()
         if fail == 0:
@@ -399,8 +393,8 @@ def exact_image_embedding_from_zip(file):
         image = PIL.Image.open(pathlib.Path(path))
 
         if np.asarray(image).shape[2] != 3:
-            new_image = PIL.Image.new("RGB", image.size, "WHITE") 
-            new_image.paste(image, mask = image.split()[3])
+            new_image = PIL.Image.new("RGB", image.size, "WHITE")
+            new_image.paste(image, mask=image.split()[3])
             image = new_image
 
         image = image.resize(size=(200, 245))
@@ -409,7 +403,7 @@ def exact_image_embedding_from_zip(file):
         with tf.device('/device:CPU:0'):
             embedding_vector = TRAINNED_MODEL.predict(
                 np.stack([image_arr]), verbose=0)
-            
+
         anchor_images.append({
             'image_path': str(path),
             'embedding_vector':  embedding_vector})
