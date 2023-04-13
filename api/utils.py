@@ -40,6 +40,7 @@ import pyunpack
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from dotenv import load_dotenv
+import os
 load_dotenv()
 
 
