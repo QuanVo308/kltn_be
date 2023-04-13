@@ -202,6 +202,12 @@ class ProductView(viewsets.GenericViewSet,
 
     @action(detail=False, methods=['get'])
     def image_exaction_update(self, request):
+        update_exact_image_multithread()           
+        return Response('update image')
+
+    @action(detail=False, methods=['get'])
+    def image_exaction_update_rembg(self, request):
+
         for _ in range(2):
             print('loading image')
             products = list(Product.objects.filter(rembg__in=[False]))
@@ -211,21 +217,13 @@ class ProductView(viewsets.GenericViewSet,
             for i in range(len(products)):
                 print(f'{i}/{len(products)}')
                 try:
-                    update_exact_image_multithread(products[i])
+                    update_exact_image_multithread_rembg(products[i])
                 except Exception as e:
                     print('exact rembg error', e)
             
             products = list(Product.objects.filter(rembg__in=[False]))
             if len(products) == 0:
                 break
-            
-
-        return Response('update image')
-
-    @action(detail=False, methods=['get'])
-    def image_exaction_update_rembg(self, request):
-
-        update_exact_image_multithread_rembg()
 
         return Response('update image')
 
