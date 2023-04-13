@@ -23,7 +23,6 @@ from selenium import webdriver
 from bs4 import BeautifulSoup
 from django.db.models import Count
 import pandas as pd
-import os
 import requests
 import datetime
 from django.utils import timezone
@@ -246,6 +245,7 @@ def exact_embedding_images_rembg(products, session):
             for _ in range(2):
                 try:
                     fail += 1
+                    image.embedding_vector_temp = image.embedding_vector
                     image.embedding_vector = exact_embedding_from_link_rembg(
                         image.link, session)
                     image.save()
@@ -372,6 +372,7 @@ def get_product_from_category_ids(category_ids):
 
 
 def exact_image_embedding_from_zip(file):
+    session = new_session()
     file_path = f'temp/{binascii.hexlify(os.urandom(10)).decode("utf8")}_{file.name}'
     folder_path = file_path.split('.')[0]
 
@@ -391,13 +392,14 @@ def exact_image_embedding_from_zip(file):
     for path in base_dir.glob("*"):
         image_paths.append(str(path))
         image = PIL.Image.open(pathlib.Path(path))
+        image = image.resize(size=(200, 245))
+        image = remove(image, session=session)
 
         if np.asarray(image).shape[2] != 3:
             new_image = PIL.Image.new("RGB", image.size, "WHITE")
             new_image.paste(image, mask=image.split()[3])
             image = new_image
 
-        image = image.resize(size=(200, 245))
         image_arr = np.asarray(image)/255.
 
         with tf.device('/device:CPU:0'):

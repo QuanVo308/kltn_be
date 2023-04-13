@@ -11,6 +11,7 @@ class ProductTest(models.Model):
     image_url = models.CharField(max_length=250, null=True, default={})
     image_path = models.CharField(max_length=250, null=True, default={})
     embedding_vector = models.JSONField(null=True, default={})
+    embedding_vector_rembg = models.JSONField(null=True, default={})
     updated_at = models.DateTimeField(auto_now=True,
                                       help_text='Thời gian cập nhật')
     created_at = models.DateTimeField(auto_now_add=True,
@@ -76,6 +77,7 @@ class Image(models.Model):
                                 related_name='images', null=False)
     link = models.CharField(max_length=250, null=True, default={})
     embedding_vector = models.JSONField(null=True, default=[])
+    embedding_vector_temp = models.JSONField(null=True, default=[])
     updated_at = models.DateTimeField(auto_now=True,
                                       help_text='Thời gian cập nhật')
     created_at = models.DateTimeField(auto_now_add=True,
