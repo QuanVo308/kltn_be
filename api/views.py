@@ -27,8 +27,15 @@ class ProductView(viewsets.GenericViewSet,
 
     @action(detail=False, methods=['get', 'post'])
     def test(self, request):
-        products = Product.objects.filter(rembg__in=[False]).exclude(id=719)
-        print(len(products))
+        image = Image.objects.filter(id = int(request.data['id']))[0]
+
+        print(image.embedding_vector_temp)
+        if image.embedding_vector_temp != [] or image.embedding_vector_temp is not None:
+            print('done')
+        
+        else :
+            print('fail')
+
 
         return Response('test')
     
@@ -233,7 +240,7 @@ class ProductView(viewsets.GenericViewSet,
 
         for _ in range(2):
             print('loading image')
-            products = list(Product.objects.filter(rembg__in=[False]))
+            products = list(Product.objects.filter(rembg__in=[False] ))
             products = np.array_split(products, len(products)/60)
             print('loading done', len(products))
 
