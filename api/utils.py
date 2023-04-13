@@ -252,10 +252,10 @@ def exact_embedding_images_temp(products):
                 except Exception as e:
                     print(
                         f'product {product.id} image {image.id} new exact error', e)
-            if image_fail:
-                image.delete()
+            # if image_fail:
+            #     image.delete()
         if fail == 0:
-            product.rembg = True
+            # product.rembg = True
             product.save()
 
 def update_exact_image_multithread_rembg(products):

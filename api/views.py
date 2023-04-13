@@ -38,6 +38,7 @@ class ProductView(viewsets.GenericViewSet,
         for _ in range(2):
             print('loading image')
             products = list(Product.objects.filter(rembg__in=[True]))
+            print(len(products))
             products = np.array_split(products, len(products)/60)
             print('loading done', len(products))
 
