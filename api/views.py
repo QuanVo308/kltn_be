@@ -394,7 +394,7 @@ class ProductTestView(viewsets.GenericViewSet,
         return response
 
     @action(detail=False, methods=['get'])
-    def image_exaction_rembg(self, request):
+    def image_exaction(self, request):
 
         # response = requests.get("https://cdn.britannica.com/45/5645-050-B9EC0205/head-treasure-flower-disk-flowers-inflorescence-ray.jpg")
         # t = PIL.Image.open(BytesIO(response.content))
@@ -408,12 +408,12 @@ class ProductTestView(viewsets.GenericViewSet,
             print(f'calculating image {product.name}')
             image = PIL.Image.open(pathlib.Path(product.image_path))
             image = image.resize(size=(200, 245))
-            image_rmbg = remove(image, session=session)
+            # image_rmbg = remove(image, session=session)
             # Create a white rgb background
-            new_image = PIL.Image.new("RGB", image_rmbg.size, "WHITE")
-            new_image.paste(image_rmbg, mask=image_rmbg.split()[3])
+            # new_image = PIL.Image.new("RGB", image.size, "WHITE")
+            # new_image.paste(image, mask=image.split()[3])
 
-            image_arr = np.asarray(new_image)/255.
+            image_arr = np.asarray(image)/255.
             embedding_vector = TRAINNED_MODEL.predict(
                 np.stack([image_arr]), verbose=0)
             product.embedding_vector = embedding_vector.tolist()
@@ -422,7 +422,7 @@ class ProductTestView(viewsets.GenericViewSet,
         return Response("ok")
 
     @action(detail=False, methods=['get'])
-    def image_exaction(self, request):
+    def image_exaction_rembg(self, request):
 
         # response = requests.get("https://cdn.britannica.com/45/5645-050-B9EC0205/head-treasure-flower-disk-flowers-inflorescence-ray.jpg")
         # t = PIL.Image.open(BytesIO(response.content))
@@ -521,19 +521,19 @@ class ProductTestView(viewsets.GenericViewSet,
             #     return Response(product.name)
             euclidean_distance = tf.math.reduce_euclidean_norm(
                 anchor_embedding - test_embedding, axis=1).numpy()
-            euclidean_distance_rembg = tf.math.reduce_euclidean_norm(
-                anchor_embedding_rembg - test_embedding_rembg, axis=1).numpy()
-            euclidean_distance = min(euclidean_distance, euclidean_distance_rembg)
+            # euclidean_distance_rembg = tf.math.reduce_euclidean_norm(
+                # anchor_embedding_rembg - test_embedding_rembg, axis=1).numpy()
+            # euclidean_distance = min(euclidean_distance, euclidean_distance_rembg)
             
             anchor_embedding = normalize(anchor_embedding, axis=1)
             test_embedding = normalize(test_embedding, axis=1)
             cosine_distance = cosine_similarity(
                 anchor_embedding, test_embedding)
-            anchor_embedding_rembg = normalize(anchor_embedding_rembg, axis=1)
-            test_embedding_rembg = normalize(test_embedding_rembg, axis=1)
-            cosine_distance_rembg = cosine_similarity(
-                anchor_embedding_rembg, test_embedding_rembg)
-            cosine_distance = max(cosine_distance, cosine_distance_rembg)
+            # anchor_embedding_rembg = normalize(anchor_embedding_rembg, axis=1)
+            # test_embedding_rembg = normalize(test_embedding_rembg, axis=1)
+            # cosine_distance_rembg = cosine_similarity(
+                # anchor_embedding_rembg, test_embedding_rembg)
+            # cosine_distance = max(cosine_distance, cosine_distance_rembg)
   
             
             all_distance.append(
@@ -546,3 +546,52 @@ class ProductTestView(viewsets.GenericViewSet,
             print(i['name'])
             name_order.append(i['name'])
         return Response({"order_list": name_order, "detail": all_distance})
+
+    # @action(detail=False, methods=['get', 'post'])
+    # def get_similar_image(self, request):
+    #     product_anchor = ProductTest.objects.filter(
+    #         name=request.GET['name'])[0]
+    #     print(product_anchor)
+    #     all_distance = []
+    #     products = ProductTest.objects.all()
+    #     for product in products:
+    #         print(f'calculating {product.name}')
+    #         if product == product_anchor:
+    #             continue
+
+    #         anchor_embedding = np.asarray(product_anchor.embedding_vector)
+    #         test_embedding = np.asarray(product.embedding_vector)
+
+    #         anchor_embedding_rembg = np.asarray(product_anchor.embedding_vector_rembg)
+    #         test_embedding_rembg = np.asarray(product.embedding_vector_rembg)
+
+    #         # if anchor_embedding.shape != (1,MODEL_OUTPUT_LENGTH) or test_embedding.shape != (1,MODEL_OUTPUT_LENGTH):
+    #         #     return Response(product.name)
+    #         euclidean_distance = tf.math.reduce_euclidean_norm(
+    #             anchor_embedding - test_embedding, axis=1).numpy()
+    #         euclidean_distance_rembg = tf.math.reduce_euclidean_norm(
+    #             anchor_embedding_rembg - test_embedding_rembg, axis=1).numpy()
+    #         euclidean_distance = min(euclidean_distance, euclidean_distance_rembg)
+            
+    #         anchor_embedding = normalize(anchor_embedding, axis=1)
+    #         test_embedding = normalize(test_embedding, axis=1)
+    #         cosine_distance = cosine_similarity(
+    #             anchor_embedding, test_embedding)
+    #         anchor_embedding_rembg = normalize(anchor_embedding_rembg, axis=1)
+    #         test_embedding_rembg = normalize(test_embedding_rembg, axis=1)
+    #         cosine_distance_rembg = cosine_similarity(
+    #             anchor_embedding_rembg, test_embedding_rembg)
+    #         cosine_distance = max(cosine_distance, cosine_distance_rembg)
+  
+            
+    #         all_distance.append(
+    #             {'name': product.name, 'id': product.id, 'cosine_distance': cosine_distance[0][0], 'euclidean_distance': euclidean_distance})
+
+    #     all_distance = sorted(
+    #         all_distance, key=lambda d: d['euclidean_distance'], reverse=False)
+    #     name_order = []
+    #     for i in all_distance:
+    #         print(i['name'])
+    #         name_order.append(i['name'])
+    #     return Response({"order_list": name_order, "detail": all_distance})
+
