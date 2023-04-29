@@ -123,3 +123,26 @@ class SourceData(models.Model):
                 # print('id new')
                 self.id = SourceData.objects.last().id + 1
             super(SourceData, self).save(*args, **kwargs)
+
+class BackgroundProcess(models.Model):
+    name = models.CharField(max_length=250, null=True, default='')
+    running = models.BooleanField(default=False)
+    updated_at = models.DateTimeField(auto_now=True,
+                                      help_text='Thời gian cập nhật')
+    created_at = models.DateTimeField(auto_now_add=True,
+                                      help_text='Thời gian tạo')
+
+    def __str__(self):
+        return f"{self.name}"
+
+    def save(self, *args, **kwargs):
+        try:
+            super(BackgroundProcess, self).save(*args, **kwargs)
+        except:
+            if not BackgroundProcess.objects.count():
+                # print('id 1')
+                self.id = 1
+            else:
+                # print('id new')
+                self.id = BackgroundProcess.objects.last().id + 1
+            super(BackgroundProcess, self).save(*args, **kwargs)

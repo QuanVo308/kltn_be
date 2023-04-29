@@ -41,6 +41,38 @@ def cleanup_temp_folder():
             except:
                 pass
 
+def test():
+    print('testting')
+    test_process, _ = BackgroundProcess.objects.get_or_create(name = 'test')
+    run = True
+    start = timezone.now()
+    runtime = timezone.now() - test_process.updated_at
+
+    if test_process.running == True and runtime.days < 3:
+        print(f'other process {test_process.name} is running')
+        return
+    
+    test_process.running = True
+    test_process.save()
+
+
+
+    while run:
+        runtime = timezone.now() - test_process.updated_at
+
+            
+        print(f'current runtime: {timezone.now() - start}')
+        print(f'current updateat: {runtime} and hour {runtime.seconds/3600} and day {runtime.days} \n')
+
+        if runtime.days > 2:
+            run = False
+            break
+
+        time.sleep(3600*2)
+
+    test_process.running = False
+    test_process.save()
+
 
 # """get random product"""
 # scheduler.add_job(get_random_product, 'interval', minutes=10)
@@ -49,6 +81,11 @@ def cleanup_temp_folder():
 
 # """cleanup temp folder"""
 # scheduler.add_job(cleanup_temp_folder, 'interval', minutes=10)
+
+"""auto update data"""
+scheduler.add_job(test, 'interval', seconds=2, end_date=timezone.now()+datetime.timedelta(0, 3))
+scheduler.add_job(test, 'interval', days=1)
+
 
 
 scheduler.start()
