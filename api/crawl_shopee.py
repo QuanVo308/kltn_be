@@ -61,20 +61,62 @@ def crawl_shopee_categories():
         SourceData.objects.filter(platform='Shopee').delete()
 
         for a in soup.find_all('a', href=True, attrs={"class": "a-sub-category--display-name"}):
-            category_link = "https://shopee.vn" + a['href']
-            description = "Shopee " + a.text
+            try:
+                category_link = "https://shopee.vn" + a['href']
+                description = "Shopee " + a.text
 
-            source = SourceData()
-            source.platform = "Shopee"
-            source.link = f"{category_link}"
-            source.description = unidecode(description)
-            source.save()
+                source = SourceData()
+                source.platform = "Shopee"
+                source.link = f"{category_link}"
+                source.description = unidecode(description)
+                source.save()
+            except Exception as e:
+                print(f"crawl shopee categies error {e}")
 
         driver.quit()
 
     except Exception as e:
         print(e)
         driver.quit()
+    cleanup_webdriver()
+
+def crawl_update_shopee_categories():
+    print('updating shopee source data')
+    driver = webdriver.Chrome(service=Service(
+        ChromeDriverManager().install()), options=otps2)
+    driver.get("https://shopee.vn/all_categories")
+
+    try:
+        content = driver.page_source
+        soup = BeautifulSoup(content, "html.parser")
+
+        # for a in soup.find_all('a', href=True, attrs={"class": "a-sub-category--display-name"}):
+        #     try:
+        #     a['href']
+        #     a.text
+
+        # SourceData.objects.filter(platform='Shopee').delete()
+
+        for a in soup.find_all('a', href=True, attrs={"class": "a-sub-category--display-name"}):
+            try:
+                category_link = "https://shopee.vn" + a['href']
+                description = "Shopee " + a.text
+
+                source, created = SourceData.objects.get_or_create(link = f"{category_link}")
+                # print(created, source.id)
+                source.platform = "Shopee"
+                source.link = f"{category_link}"
+                source.description = unidecode(description)
+                source.save()
+            except Exception as e:
+                print(f"crawl shopee categies update error {e}")
+
+        driver.quit()
+
+    except Exception as e:
+        print(e)
+        driver.quit()
+    cleanup_webdriver()
 
 
 def shopee_recrawl_product():
@@ -139,6 +181,36 @@ def crawl_shopee_all():
             print("crawl shopee all error ", e)
 
 
+def autocrawl_shopee_all(update_new_process):
+    """
+    crawl everything of shopee source, product, image with multithread
+    """
+
+    try_time = 3
+    # try again if any error occur
+    while try_time >= 0:
+        try:
+            try_time -= 1
+            sources = SourceData.objects.filter(
+                platform='Shopee', crawled__in=[False])
+            threads = []
+            # distribute source for threads
+            for thread_num in range(0, THREAD_NUMBER_LINK_SOURCE):
+                threads.append(PropagatingThread(
+                    target=autocrawl_shopee_page_multithread, args=(sources, thread_num, update_new_process,)))
+            for thread in threads:
+                thread.start()
+            for thread in threads:
+                thread.join()
+
+            sources = SourceData.objects.filter(
+                platform='Shopee', crawled__in=[False])
+            if len(sources) == 0:
+                return
+        except Exception as e:
+            print("autocrawl shopee all error ", e)
+
+
 def crawl_shopee_specified(source_queries):
     """
     crawl specified of shopee sources, product, image with multithread
@@ -186,6 +258,33 @@ def crawl_shopee_page_multithread(sources, thread_num):
     except Exception as err_374:
         driver.quit()
         print('shopee multithread crawl page error', err_374)
+
+def autocrawl_shopee_page_multithread(sources, thread_num, background_process):
+    """
+    decide which source of each thread belong to and init webdriver
+    """
+    # sources = sources[:2]
+
+    try:
+        # session = new_session()
+        source_quantity = len(sources)
+        for i in range(source_quantity):
+
+            runtime = timezone.now() - background_process.updated_at
+            print(thread_num, runtime)
+            if runtime.seconds/3600 >= AUTO_UPDATE_NEW_TIMEOUT_H:
+                print(f'background process {background_process.name} is timeout')
+                break
+
+            if i % THREAD_NUMBER_LINK_SOURCE == thread_num:
+                driver = webdriver.Chrome(service=Service(
+                    ChromeDriverManager().install()), options=otps)
+                crawl_shopee_page(sources[i], driver)
+                driver.quit()
+
+    except Exception as err_374:
+        driver.quit()
+        print('shopee multithread autocrawl page error', err_374)
 
 
 def crawl_shopee_image(product, driver):

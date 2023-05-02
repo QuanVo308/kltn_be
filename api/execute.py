@@ -1,6 +1,7 @@
 from .scheduler_jobs import *
 from .serializers import *
 from .utils import *
+from .crawl_shopee import *
 from apscheduler.schedulers.background import BackgroundScheduler
 scheduler = BackgroundScheduler()
 
@@ -48,14 +49,12 @@ def test():
     start = timezone.now()
     runtime = timezone.now() - test_process.updated_at
 
-    if test_process.running == True and runtime.days < 3:
+    if test_process.running == True and runtime.seconds/3600 < 50:
         print(f'other process {test_process.name} is running')
         return
     
     test_process.running = True
     test_process.save()
-
-
 
     while run:
         runtime = timezone.now() - test_process.updated_at
@@ -64,7 +63,7 @@ def test():
         print(f'current runtime: {timezone.now() - start}')
         print(f'current updateat: {runtime} and hour {runtime.seconds/3600} and day {runtime.days} \n')
 
-        if runtime.days > 2:
+        if runtime.seconds/3600 >= 48:
             run = False
             break
 
@@ -73,6 +72,44 @@ def test():
     test_process.running = False
     test_process.save()
 
+def auto_update_new_data():
+    print('update new data')
+    update_new_process, _ = BackgroundProcess.objects.get_or_create(name = 'update_new')
+    start = timezone.now()
+    runtime = timezone.now() - update_new_process.updated_at
+
+    if update_new_process.running == True and runtime.seconds/3600 < AUTO_UPDATE_NEW_TIMEOUT_H + 2:
+        print(f'other process {update_new_process.name} is running')
+        # return
+    
+    update_new_process.running = True
+    update_new_process.save()
+
+    while True:
+        runtime = timezone.now() - update_new_process.updated_at
+
+        if runtime.seconds/3600 >= AUTO_UPDATE_NEW_TIMEOUT_H:
+            break
+
+        try:
+            crawl_update_shopee_categories()
+            source_data = SourceData.objects.filter(platform='Shopee', crawled__in=[False])
+
+            # print(len(source_data))
+            if len(source_data) == 0:
+                crawl_shopee_categories()
+            
+            autocrawl_shopee_all(update_new_process)
+        except Exception as e:
+            print(f'auto update new error: {e}')
+
+        time.sleep(3600)
+        # for test only
+        # break
+
+    update_new_process.running = False
+    update_new_process.save()
+    
 
 # """get random product"""
 # scheduler.add_job(get_random_product, 'interval', minutes=10)
@@ -82,10 +119,14 @@ def test():
 # """cleanup temp folder"""
 # scheduler.add_job(cleanup_temp_folder, 'interval', minutes=10)
 
-"""auto update data"""
-scheduler.add_job(test, 'interval', seconds=2, end_date=timezone.now()+datetime.timedelta(0, 3))
-scheduler.add_job(test, 'interval', days=1)
+# """test auto update data"""
+# scheduler.add_job(test, 'interval', seconds=2, end_date=timezone.now()+datetime.timedelta(0, 3))
+# scheduler.add_job(test, 'interval', days=1)
 
+# """auto update new data"""
+# scheduler.add_job(auto_update_new_data, 'interval', hours=12)
 
+# """auto update old data"""
+# scheduler.add_job(auto_update_new_data, 'interval', hours=12)
 
 scheduler.start()

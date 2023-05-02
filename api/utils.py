@@ -53,6 +53,8 @@ THREAD_NUMBER_LINK_SOURCE = int(
     os.environ.get('THREAD_QUANTITY_CRAWL_LINK_SOURCE'))
 MODEL_OUTPUT_LENGTH = int(os.environ.get('MODEL_OUTPUT_LENGTH'))
 EXPIRE_INFO_DAYS = int(os.environ.get('EXPIRE_INFO_DAYS'))
+AUTO_UPDATE_NEW_TIMEOUT_H = 50
+AUTO_UPDATE_OLD_TIMEOUT_H = 50
 
 
 otps = webdriver.ChromeOptions()
@@ -63,7 +65,7 @@ otps.add_argument("--log-level=3")
 
 
 otps2 = webdriver.ChromeOptions()
-otps2.add_argument('--headless')
+# otps2.add_argument('--headless')
 otps2.add_argument("--disable-extensions")
 otps2.add_argument("--disable-logging")
 otps2.add_argument("--log-level=3")
