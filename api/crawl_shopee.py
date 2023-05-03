@@ -80,6 +80,7 @@ def crawl_shopee_categories():
         driver.quit()
     cleanup_webdriver()
 
+
 def crawl_update_shopee_categories():
     print('updating shopee source data')
     driver = webdriver.Chrome(service=Service(
@@ -102,7 +103,8 @@ def crawl_update_shopee_categories():
                 category_link = "https://shopee.vn" + a['href']
                 description = "Shopee " + a.text
 
-                source, created = SourceData.objects.get_or_create(link = f"{category_link}")
+                source, created = SourceData.objects.get_or_create(
+                    link=f"{category_link}")
                 # print(created, source.id)
                 source.platform = "Shopee"
                 source.link = f"{category_link}"
@@ -159,12 +161,14 @@ def shopee_autorecrawl_product(update_old_process):
             print(len(product_list))
             n = 0
 
-            product_list = np.array_split(product_list, math.ceil(len(product_list)/60.0))
+            product_list = np.array_split(
+                product_list, math.ceil(len(product_list)/60.0))
             for i in range(len(product_list)):
 
                 runtime = timezone.now() - update_old_process.updated_at
                 if runtime.total_seconds()/3600 >= AUTO_UPDATE_OLD_TIMEOUT_H:
-                    print(f'background process {update_old_process.name} is timeout')
+                    print(
+                        f'background process {update_old_process.name} is timeout')
                     return
 
                 crawl_shopee_image_multithread(
@@ -172,15 +176,14 @@ def shopee_autorecrawl_product(update_old_process):
                 n += 60
                 if n >= len(product_list):
                     break
-            
+
             product_list = get_need_update_product()
-            
+
             if len(product_list) == 0:
                 break
 
-    
         product_list = get_need_update_product()
-                
+
         for product in product_list:
             product.delete()
 
@@ -293,6 +296,7 @@ def crawl_shopee_page_multithread(sources, thread_num):
         driver.quit()
         print('shopee multithread crawl page error', err_374)
 
+
 def autocrawl_shopee_page_multithread(sources, thread_num, background_process):
     """
     decide which source of each thread belong to and init webdriver
@@ -307,7 +311,8 @@ def autocrawl_shopee_page_multithread(sources, thread_num, background_process):
             runtime = timezone.now() - background_process.updated_at
             print(thread_num, runtime)
             if runtime.total_seconds()/3600 >= AUTO_UPDATE_NEW_TIMEOUT_H:
-                print(f'background process {background_process.name} is timeout')
+                print(
+                    f'background process {background_process.name} is timeout')
                 break
 
             if i % THREAD_NUMBER_LINK_SOURCE == thread_num:
@@ -413,8 +418,10 @@ def crawl_shopee_image(product, driver):
                             i.product = product
                             # i.embedding_vector = exact_embedding_from_link(
                             #     i.link)
-                            image.embedding_vector_temp = exact_embedding_from_link(i.link)
-                            i.embedding_vector = exact_embedding_from_link_rembg(i.link, session)
+                            image.embedding_vector_temp = exact_embedding_from_link(
+                                i.link)
+                            i.embedding_vector = exact_embedding_from_link_rembg(
+                                i.link, session)
                             next_button = True
                             i.save()
                             new_image = True
@@ -461,7 +468,7 @@ def crawl_shopee_image(product, driver):
             # print(1)
 
             category_instance = Category.objects.filter(
-                name_raw = category)
+                name_raw=category)
 
             category_instance = category_instance[0] if len(
                 category_instance) != 0 else Category(name=unidecode(category).lower())
@@ -691,7 +698,6 @@ def update_category_raw_namethread(categories):
     driver = webdriver.Chrome(service=Service(
         ChromeDriverManager().install()), options=otps2)
 
-    
     for category in categories:
         l = len(category.products.all())
         print(category.id, l)

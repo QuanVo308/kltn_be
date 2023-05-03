@@ -42,9 +42,10 @@ def cleanup_temp_folder():
             except:
                 pass
 
+
 def test():
     print('testting')
-    test_process, _ = BackgroundProcess.objects.get_or_create(name = 'test')
+    test_process, _ = BackgroundProcess.objects.get_or_create(name='test')
     run = True
     start = timezone.now()
     runtime = timezone.now() - test_process.updated_at
@@ -52,16 +53,16 @@ def test():
     if test_process.running == True and runtime.total_seconds()/3600 < 50:
         print(f'other process {test_process.name} is running')
         return
-    
+
     test_process.running = True
     test_process.save()
 
     while run:
         runtime = timezone.now() - test_process.updated_at
 
-            
         print(f'current runtime: {timezone.now() - start}')
-        print(f'current updateat: {runtime} and hour {runtime.total_seconds()/3600} and day {runtime.days} \n')
+        print(
+            f'current updateat: {runtime} and hour {runtime.total_seconds()/3600} and day {runtime.days} \n')
 
         if runtime.total_seconds()/3600 >= 48:
             run = False
@@ -72,16 +73,18 @@ def test():
     test_process.running = False
     test_process.save()
 
+
 def auto_update_new_data():
     print('update new data')
-    update_new_process, _ = BackgroundProcess.objects.get_or_create(name = 'update_new')
+    update_new_process, _ = BackgroundProcess.objects.get_or_create(
+        name='update_new')
     start = timezone.now()
     runtime = timezone.now() - update_new_process.updated_at
 
     if update_new_process.running == True and runtime.total_seconds()/3600 < AUTO_UPDATE_NEW_TIMEOUT_H + 2:
         print(f'other process {update_new_process.name} is running')
         return
-    
+
     update_new_process.running = True
     update_new_process.save()
 
@@ -93,12 +96,13 @@ def auto_update_new_data():
 
         try:
             crawl_update_shopee_categories()
-            source_data = SourceData.objects.filter(platform='Shopee', crawled__in=[False])
+            source_data = SourceData.objects.filter(
+                platform='Shopee', crawled__in=[False])
 
             # print(len(source_data))
             if len(source_data) == 0:
                 crawl_shopee_categories()
-            
+
             autocrawl_shopee_all(update_new_process)
         except Exception as e:
             print(f'auto update new error: {e}')
@@ -110,16 +114,18 @@ def auto_update_new_data():
     update_new_process.running = False
     update_new_process.save()
 
+
 def auto_update_old_data():
     print('update old data')
-    update_old_process, _ = BackgroundProcess.objects.get_or_create(name = 'update_old')
+    update_old_process, _ = BackgroundProcess.objects.get_or_create(
+        name='update_old')
     start = timezone.now()
     runtime = timezone.now() - update_old_process.updated_at
 
     if update_old_process.running == True and runtime.total_seconds()/3600 < AUTO_UPDATE_OLD_TIMEOUT_H + 2:
         print(f'other process {update_old_process.name} is running')
         return
-    
+
     update_old_process.running = True
     update_old_process.save()
 
@@ -130,7 +136,7 @@ def auto_update_old_data():
             break
 
         try:
-            
+
             shopee_autorecrawl_product(update_old_process)
 
         except Exception as e:
@@ -142,7 +148,7 @@ def auto_update_old_data():
 
     update_old_process.running = False
     update_old_process.save()
-    
+
 
 # """get random product"""
 # scheduler.add_job(get_random_product, 'interval', minutes=10)

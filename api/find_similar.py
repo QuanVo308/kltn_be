@@ -58,7 +58,7 @@ def calculate_best_similar_product(anchor_images, test_product):
             try:
                 distance = calculate_similar_image(anchor_image, test_image)
                 # print("check", distance)
-                if distance["euclidean_distance"] < best_similar["euclidean_distance"] :
+                if distance["euclidean_distance"] < best_similar["euclidean_distance"]:
                     # print("new best", distance, best_similar)
                     best_similar = distance
                 # print('\n')
@@ -80,7 +80,7 @@ def calculate_similar_image(anchor_image, test_image):
         anchor_embedding - test_embedding, axis=1).numpy()
     euclidean_distance = min(euclidean_distance, tf.math.reduce_euclidean_norm(
         anchor_embedding_temp - test_embedding_temp, axis=1).numpy())
-    
+
     anchor_embedding = normalize(anchor_embedding, axis=1)
     test_embedding = normalize(test_embedding, axis=1)
     # cosine_distance = cosine_similarity(anchor_embedding, test_embedding)

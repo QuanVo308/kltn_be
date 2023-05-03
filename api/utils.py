@@ -218,6 +218,7 @@ def exact_embedding_from_link(link):
         raise exceptions.ValidationError(f'exacting image from link error {e}')
         return []
 
+
 def update_exact_image_multithread_temp(products):
     try:
         products = np.array_split(products, THREAD_QUANTITY_CRAWL_PRODUCT)
@@ -248,7 +249,8 @@ def exact_embedding_images_temp(products):
             for _ in range(2):
                 try:
                     fail += 1
-                    image.embedding_vector_temp = exact_embedding_from_link(image.link)
+                    image.embedding_vector_temp = exact_embedding_from_link(
+                        image.link)
                     image.save()
                     image_fail = False
                     fail -= 1
@@ -261,6 +263,7 @@ def exact_embedding_images_temp(products):
         if fail == 0:
             # product.rembg = True
             product.save()
+
 
 def update_exact_image_multithread_rembg(products):
     session = new_session()
@@ -292,7 +295,8 @@ def exact_embedding_images_rembg(products, session):
             for _ in range(2):
                 try:
                     fail += 1
-                    image.embedding_vector_temp = exact_embedding_from_link(image.link)
+                    image.embedding_vector_temp = exact_embedding_from_link(
+                        image.link)
                     image.embedding_vector = exact_embedding_from_link_rembg(
                         image.link, session)
                     image.save()
@@ -332,7 +336,8 @@ def exact_embedding_from_link_rembg(link, session):
         gc.collect()
         tf.keras.backend.clear_session()
         # print('exacting image from link error', e)
-        raise exceptions.ValidationError(f'exacting image rembg from link error {e}')
+        raise exceptions.ValidationError(
+            f'exacting image rembg from link error {e}')
         return []
 
 
@@ -458,10 +463,12 @@ def exact_image_embedding_from_zip(file):
             'embedding_vector':  embedding_vector})
     return anchor_images
 
+
 def get_need_update_product():
     result = {}
 
-    products = Product.objects.filter(source_description__startswith="Shopee", crawled__in=[True])
+    products = Product.objects.filter(
+        source_description__startswith="Shopee", crawled__in=[True])
 
     total_thread = 4
     threads = []
@@ -471,18 +478,20 @@ def get_need_update_product():
     for thread_num in range(total_thread):
         temp_list = []
         result[f'{thread_num}'] = temp_list
-        threads.append(PropagatingThread(target=get_need_update_product_thread, args=(products[thread_num], temp_list,)))
+        threads.append(PropagatingThread(
+            target=get_need_update_product_thread, args=(products[thread_num], temp_list,)))
     for thread in threads:
         thread.start()
     for thread in threads:
         thread.join()
-    
+
     all_result = []
     for key in result:
         print(key)
         all_result.extend(result[key])
 
     return all_result
+
 
 def get_need_update_product_thread(products, temp_list):
     print(len(products))

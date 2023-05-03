@@ -40,7 +40,7 @@ class ProductView(viewsets.GenericViewSet,
         # end = timezone.now()
         # print(end - start)
         return Response('test')
-    
+
     @action(detail=False, methods=['get', 'post'])
     def temp_exact_image(self, request):
 
@@ -57,7 +57,7 @@ class ProductView(viewsets.GenericViewSet,
                     update_exact_image_multithread_temp(products[i])
                 except Exception as e:
                     print('exact rembg error', e)
-            
+
             products = list(Product.objects.filter(rembg__in=[True]))
             if len(products) == 0:
                 break
@@ -234,7 +234,7 @@ class ProductView(viewsets.GenericViewSet,
 
     # @action(detail=False, methods=['get'])
     # def image_exaction_update(self, request):
-    #     update_exact_image_multithread()           
+    #     update_exact_image_multithread()
     #     return Response('update image')
 
     @action(detail=False, methods=['get'])
@@ -242,7 +242,7 @@ class ProductView(viewsets.GenericViewSet,
 
         for _ in range(2):
             print('loading image')
-            products = list(Product.objects.filter(rembg__in=[False] ))
+            products = list(Product.objects.filter(rembg__in=[False]))
             products = np.array_split(products, math.ceil(len(products)/60.0))
             print('loading done', len(products))
 
@@ -252,7 +252,7 @@ class ProductView(viewsets.GenericViewSet,
                     update_exact_image_multithread_rembg(products[i])
                 except Exception as e:
                     print('exact rembg error', e)
-            
+
             products = list(Product.objects.filter(rembg__in=[False]))
             if len(products) == 0:
                 break
@@ -448,7 +448,7 @@ class ProductTestView(viewsets.GenericViewSet,
             image_arr = np.asarray(image)/255.
             embedding_vector = TRAINNED_MODEL.predict(
                 np.stack([image_arr]), verbose=0)
-            
+
             image_rmbg = remove(image)
             new_image = PIL.Image.new("RGB", image_rmbg.size, "WHITE")
             new_image.paste(image_rmbg, mask=image_rmbg.split()[3])
@@ -516,7 +516,8 @@ class ProductTestView(viewsets.GenericViewSet,
             anchor_embedding = np.asarray(product_anchor.embedding_vector)
             test_embedding = np.asarray(product.embedding_vector)
 
-            anchor_embedding_rembg = np.asarray(product_anchor.embedding_vector_rembg)
+            anchor_embedding_rembg = np.asarray(
+                product_anchor.embedding_vector_rembg)
             test_embedding_rembg = np.asarray(product.embedding_vector_rembg)
 
             # if anchor_embedding.shape != (1,MODEL_OUTPUT_LENGTH) or test_embedding.shape != (1,MODEL_OUTPUT_LENGTH):
@@ -524,9 +525,9 @@ class ProductTestView(viewsets.GenericViewSet,
             euclidean_distance = tf.math.reduce_euclidean_norm(
                 anchor_embedding - test_embedding, axis=1).numpy()
             # euclidean_distance_rembg = tf.math.reduce_euclidean_norm(
-                # anchor_embedding_rembg - test_embedding_rembg, axis=1).numpy()
+            # anchor_embedding_rembg - test_embedding_rembg, axis=1).numpy()
             # euclidean_distance = min(euclidean_distance, euclidean_distance_rembg)
-            
+
             anchor_embedding = normalize(anchor_embedding, axis=1)
             test_embedding = normalize(test_embedding, axis=1)
             cosine_distance = cosine_similarity(
@@ -534,10 +535,9 @@ class ProductTestView(viewsets.GenericViewSet,
             # anchor_embedding_rembg = normalize(anchor_embedding_rembg, axis=1)
             # test_embedding_rembg = normalize(test_embedding_rembg, axis=1)
             # cosine_distance_rembg = cosine_similarity(
-                # anchor_embedding_rembg, test_embedding_rembg)
+            # anchor_embedding_rembg, test_embedding_rembg)
             # cosine_distance = max(cosine_distance, cosine_distance_rembg)
-  
-            
+
             all_distance.append(
                 {'name': product.name, 'id': product.id, 'cosine_distance': cosine_distance[0][0], 'euclidean_distance': euclidean_distance})
 
@@ -574,7 +574,7 @@ class ProductTestView(viewsets.GenericViewSet,
     #         euclidean_distance_rembg = tf.math.reduce_euclidean_norm(
     #             anchor_embedding_rembg - test_embedding_rembg, axis=1).numpy()
     #         euclidean_distance = min(euclidean_distance, euclidean_distance_rembg)
-            
+
     #         anchor_embedding = normalize(anchor_embedding, axis=1)
     #         test_embedding = normalize(test_embedding, axis=1)
     #         cosine_distance = cosine_similarity(
@@ -584,8 +584,7 @@ class ProductTestView(viewsets.GenericViewSet,
     #         cosine_distance_rembg = cosine_similarity(
     #             anchor_embedding_rembg, test_embedding_rembg)
     #         cosine_distance = max(cosine_distance, cosine_distance_rembg)
-  
-            
+
     #         all_distance.append(
     #             {'name': product.name, 'id': product.id, 'cosine_distance': cosine_distance[0][0], 'euclidean_distance': euclidean_distance})
 
@@ -596,4 +595,3 @@ class ProductTestView(viewsets.GenericViewSet,
     #         print(i['name'])
     #         name_order.append(i['name'])
     #     return Response({"order_list": name_order, "detail": all_distance})
-
