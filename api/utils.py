@@ -41,6 +41,7 @@ from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from dotenv import load_dotenv
 import os
+from selenium.webdriver.common.keys import Keys
 load_dotenv()
 
 
@@ -52,7 +53,8 @@ THREAD_NUMBER_LINK_SOURCE = int(
     os.environ.get('THREAD_QUANTITY_CRAWL_LINK_SOURCE'))
 MODEL_OUTPUT_LENGTH = int(os.environ.get('MODEL_OUTPUT_LENGTH'))
 EXPIRE_INFO_DAYS = int(os.environ.get('EXPIRE_INFO_DAYS'))
-
+SHOPEE_USERNAME = os.environ.get('SHOPEE_USERNAME')
+SHOPEE_PASSWORD = os.environ.get('SHOPEE_PASSWORD')
 AUTO_UPDATE_NEW_TIMEOUT_H = 50
 AUTO_UPDATE_OLD_TIMEOUT_H = 50
 

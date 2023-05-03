@@ -352,6 +352,7 @@ def crawl_shopee_image(product, driver):
             # print("check", e)
             # time.sleep(1)
             try_times += 1
+
     # print(f'done 0 {product.name}')
 
     try_times = 0
@@ -450,7 +451,12 @@ def crawl_shopee_image(product, driver):
                 if i == 1:
                     next_button = False
                 time.sleep(1)
+                try:
+                    shopee_login(driver)
+                except:
+                    pass
                 print(f"shopee click next error {i}")
+
                 pass
 
     gc.collect()
@@ -482,6 +488,17 @@ def crawl_shopee_image(product, driver):
             product.save()
         except Exception as e:
             print(f"get category error product {product.id}: {e}")
+
+
+def shopee_login(driver):
+    user_name = driver.find_element(
+        By.XPATH, '//input[@placeholder="Email/Số điện thoại/Tên đăng nhập"]')
+    password = driver.find_element(
+        By.XPATH, '//input[@placeholder="Mật khẩu"]')
+
+    user_name.send_keys(SHOPEE_USERNAME)
+    password.send_keys(SHOPEE_PASSWORD)
+    password.send_keys(Keys.ENTER)
 
 
 def crawl_shopee_image_multithread(product_list, recrawl=False, try_time=3):
