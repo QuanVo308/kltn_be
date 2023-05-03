@@ -53,6 +53,7 @@ THREAD_NUMBER_LINK_SOURCE = int(
     os.environ.get('THREAD_QUANTITY_CRAWL_LINK_SOURCE'))
 MODEL_OUTPUT_LENGTH = int(os.environ.get('MODEL_OUTPUT_LENGTH'))
 EXPIRE_INFO_DAYS = int(os.environ.get('EXPIRE_INFO_DAYS'))
+
 AUTO_UPDATE_NEW_TIMEOUT_H = 50
 AUTO_UPDATE_OLD_TIMEOUT_H = 50
 
@@ -332,7 +333,7 @@ def exact_embedding_from_link_rembg(link, session):
         gc.collect()
         tf.keras.backend.clear_session()
         # print('exacting image from link error', e)
-        raise exceptions.ValidationError(f'exacting image from link error {e}')
+        raise exceptions.ValidationError(f'exacting image rembg from link error {e}')
         return []
 
 

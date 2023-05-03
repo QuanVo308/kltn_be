@@ -109,6 +109,39 @@ def auto_update_new_data():
 
     update_new_process.running = False
     update_new_process.save()
+
+def auto_update_old_data():
+    print('update old data')
+    update_old_process, _ = BackgroundProcess.objects.get_or_create(name = 'update_old')
+    start = timezone.now()
+    runtime = timezone.now() - update_old_process.updated_at
+
+    if update_old_process.running == True and runtime.seconds/3600 < AUTO_UPDATE_OLD_TIMEOUT_H + 2:
+        print(f'other process {update_old_process.name} is running')
+        # return
+    
+    update_old_process.running = True
+    update_old_process.save()
+
+    while True:
+        runtime = timezone.now() - update_old_process.updated_at
+
+        if runtime.seconds/3600 >= AUTO_UPDATE_OLD_TIMEOUT_H:
+            break
+
+        try:
+            
+            shopee_autorecrawl_product(update_old_process)
+
+        except Exception as e:
+            print(f'auto update new error: {e}')
+
+        time.sleep(3600)
+        # for test only
+        # break
+
+    update_old_process.running = False
+    update_old_process.save()
     
 
 # """get random product"""

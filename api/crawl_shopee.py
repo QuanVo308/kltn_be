@@ -151,6 +151,42 @@ def shopee_recrawl_product():
         product.delete()
 
 
+def shopee_autorecrawl_product(update_old_process):
+    product_list = []
+    products = Product.objects.annotate(image_count=Count("images")).filter(
+        source_description__startswith="Shopee", crawled__in=[True])
+
+    # product_list = [
+    #     product for product in products if product.image_count == 0]
+
+    for product in products:
+        if product.image_count == 0 or check_update_expire(product):
+            product_list.append(product)
+
+    if len(product_list) > 0:
+        for _ in range(2):
+            print(len(product_list))
+            n = 0
+            while True:
+                crawl_shopee_image_multithread(
+                    product_list[n:min(len(product_list), n + 60)], recrawl=True, try_time=0)
+                n += 60
+                if n >= len(product_list):
+                    break
+            products = Product.objects.annotate(image_count=Count("images")).filter(
+                source_description__startswith="Shopee", crawled__in=[True])
+            product_list = [
+                product for product in products if product.image_count == 0]
+            if len(product_list) == 0:
+                break
+    products = Product.objects.annotate(image_count=Count("images")).filter(
+        source_description__startswith="Shopee", crawled__in=[True])
+    product_list = [
+        product for product in products if product.image_count == 0]
+    for product in product_list:
+        product.delete()
+
+
 def crawl_shopee_all():
     """
     crawl everything of shopee source, product, image with multithread
@@ -379,6 +415,7 @@ def crawl_shopee_image(product, driver):
                             i.product = product
                             # i.embedding_vector = exact_embedding_from_link(
                             #     i.link)
+                            image.embedding_vector_temp = exact_embedding_from_link(i.link)
                             i.embedding_vector = exact_embedding_from_link_rembg(i.link, session)
                             next_button = True
                             i.save()
@@ -448,7 +485,7 @@ def crawl_shopee_image_multithread(product_list, recrawl=False, try_time=3):
     while try_time >= 0:
         try:
             cleanup_webdriver()
-            cleanup_category()
+            # cleanup_category()
         except Exception as ewd:
             print("cleanup webdriver", ewd)
         products_not_crawled = get_not_crawl_products(

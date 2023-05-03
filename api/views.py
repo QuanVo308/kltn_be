@@ -27,9 +27,25 @@ class ProductView(viewsets.GenericViewSet,
 
     @action(detail=False, methods=['get', 'post'])
     def test(self, request):
-
-        auto_update_new_data()
+        """
+        check keep
+        """
+        # auto_update_new_data()
         # crawl_update_shopee_categories()
+
+        product_list = []
+        products = Product.objects.filter(
+            source_description__startswith="Shopee", crawled__in=[True])
+
+        # product_list = [
+        #     product for product in products if product.image_count == 0]
+
+        for product in products:
+            # print(product.id, len(product.images.all()))
+            if len(product.images.all()) == 0 or check_update_expire(product):
+                # print(product.id)
+                product_list.append(product)
+        print(len(product_list))
 
         return Response('test')
     
