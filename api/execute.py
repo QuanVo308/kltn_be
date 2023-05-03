@@ -134,7 +134,7 @@ def auto_update_old_data():
             shopee_autorecrawl_product(update_old_process)
 
         except Exception as e:
-            print(f'auto update new error: {e}')
+            print(f'auto update old error: {e}')
 
         time.sleep(3 * 3600)
         # for test only
@@ -160,6 +160,7 @@ def auto_update_old_data():
 # scheduler.add_job(auto_update_new_data, 'interval', hours=12)
 
 # """auto update old data"""
-# scheduler.add_job(auto_update_new_data, 'interval', hours=12)
+# scheduler.add_job(auto_update_old_data, 'interval', seconds=4, end_date=timezone.now()+datetime.timedelta(0, 6))
+# scheduler.add_job(auto_update_old_data, 'interval', hours=24)
 
 scheduler.start()

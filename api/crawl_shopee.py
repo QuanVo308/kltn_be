@@ -159,7 +159,7 @@ def shopee_autorecrawl_product(update_old_process):
             print(len(product_list))
             n = 0
 
-            product_list = np.array_split(product_list, len(product_list)/60)
+            product_list = np.array_split(product_list, math.ceil(len(product_list)/60.0))
             for i in range(len(product_list)):
 
                 runtime = timezone.now() - update_old_process.updated_at

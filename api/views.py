@@ -48,7 +48,7 @@ class ProductView(viewsets.GenericViewSet,
             print('loading image')
             products = list(Product.objects.filter(rembg__in=[True]))
             print(len(products))
-            products = np.array_split(products, len(products)/60)
+            products = np.array_split(products, math.ceil(len(products)/60.0))
             print('loading done', len(products))
 
             for i in range(len(products)):
@@ -112,7 +112,7 @@ class ProductView(viewsets.GenericViewSet,
             products = Product.objects.filter(
                 Q(category__name='khac') | Q(category=None))
             print(len(products))
-            products = np.array_split(products, len(products)/60)
+            products = np.array_split(products, math.ceil(len(products)/60.0))
 
             if len(products) > 0:
                 for i in range(len(products)):
@@ -243,7 +243,7 @@ class ProductView(viewsets.GenericViewSet,
         for _ in range(2):
             print('loading image')
             products = list(Product.objects.filter(rembg__in=[False] ))
-            products = np.array_split(products, len(products)/60)
+            products = np.array_split(products, math.ceil(len(products)/60.0))
             print('loading done', len(products))
 
             for i in range(len(products)):
