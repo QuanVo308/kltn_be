@@ -380,7 +380,7 @@ def crawl_shopee_image(product, driver):
             try:
                 for a in all_soup:
                     image_link = a.find(
-                        'div', attrs={"class": "A4dsoy uno8xj"})['style']
+                        'div', attrs={"class": "A4dsoy"})['style']
                     image_link = re.findall("url\(\"(.+)\"\)", image_link)[0]
                 soup.select(".dR8kXc a.akCPfg:last-of-type")[0].text
                 break
@@ -400,7 +400,7 @@ def crawl_shopee_image(product, driver):
                 for a in soup.find_all('div', attrs={"class": "MZ9yDd"}):
                     try:
                         image_link = a.find(
-                            'div', attrs={"class": "A4dsoy uno8xj"})['style']
+                            'div', attrs={"class": "A4dsoy"})['style']
                         image_link = re.findall(
                             "url\(\"(.+)\"\)", image_link)[0]
 
@@ -487,6 +487,7 @@ def crawl_shopee_image(product, driver):
             product.save()
         except Exception as e:
             print(f"get category error product {product.id}: {e}")
+    product.save()
 
 
 def shopee_login(driver):

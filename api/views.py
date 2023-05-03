@@ -32,13 +32,13 @@ class ProductView(viewsets.GenericViewSet,
         """
         # auto_update_new_data()
         # crawl_update_shopee_categories()
-        auto_update_old_data()
+        # auto_update_old_data()
 
-        # start = timezone.now()
-        # product_list = get_need_update_product()
-        # print(len(product_list))
-        # end = timezone.now()
-        # print(end - start)
+        start = timezone.now()
+        product_list = get_need_update_product()
+        print(len(product_list))
+        end = timezone.now()
+        print(end - start)
         return Response('test')
 
     @action(detail=False, methods=['get', 'post'])
