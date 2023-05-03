@@ -141,34 +141,34 @@ def check_update_expire(instance):
         return True
 
 
-def update_exact_image_multithread():
-    images = Image.objects.filter(embedding_vector=[])
-    print(len(images))
-    quantity = len(images)
-    total_thread = os.cpu_count()
-    threads = []
-    images = np.array_split(images, total_thread)
-    for thread_num in range(total_thread):
-        threads.append(PropagatingThread(
-            target=exact_image_thread, args=(images[thread_num],)))
+# def update_exact_image_multithread():
+#     images = Image.objects.filter(embedding_vector=[])
+#     print(len(images))
+#     quantity = len(images)
+#     total_thread = os.cpu_count()
+#     threads = []
+#     images = np.array_split(images, total_thread)
+#     for thread_num in range(total_thread):
+#         threads.append(PropagatingThread(
+#             target=exact_image_thread, args=(images[thread_num],)))
 
-    for thread in threads:
-        thread.start()
-    for thread in threads:
-        thread.join()
+#     for thread in threads:
+#         thread.start()
+#     for thread in threads:
+#         thread.join()
 
-    # del model
-    # gc.collect()
+#     # del model
+#     # gc.collect()
 
 
-def exact_image_thread(images):
-    for idx, image in enumerate(images):
-        # print(image.id, f'{idx}/{len(images)}')
-        try:
-            image.embedding_vector = exact_embedding_from_link(image.link)
-            image.save()
-        except:
-            image.delete()
+# def exact_image_thread(images):
+#     for idx, image in enumerate(images):
+#         # print(image.id, f'{idx}/{len(images)}')
+#         try:
+#             image.embedding_vector = exact_embedding_from_link(image.link)
+#             image.save()
+#         except:
+#             image.delete()
 
 
 def delete_all_product_multithread():
@@ -293,7 +293,7 @@ def exact_embedding_images_rembg(products, session):
             for _ in range(2):
                 try:
                     fail += 1
-                    image.embedding_vector_temp = image.embedding_vector
+                    image.embedding_vector_temp = exact_embedding_from_link(image.link)
                     image.embedding_vector = exact_embedding_from_link_rembg(
                         image.link, session)
                     image.save()
@@ -342,41 +342,41 @@ def get_not_crawl_products(product_list):
     return ps
 
 
-def exact_embedding_vector_product(product_list):
-    try:
-        print('loading model')
-        # model = load_models()
-        print('exacting embedding vector')
-        threads = []
-        for thread_num in range(0, (THREAD_QUANTITY_CRAWL_PRODUCT * 2)):
-            threads.append(PropagatingThread(
-                target=exact_embedding_vector_thread, args=(product_list, thread_num,)))
-        for thread in threads:
-            thread.start()
-        for thread in threads:
-            thread.join()
-        # del model
-        # gc.collect()
+# def exact_embedding_vector_product(product_list):
+#     try:
+#         print('loading model')
+#         # model = load_models()
+#         print('exacting embedding vector')
+#         threads = []
+#         for thread_num in range(0, (THREAD_QUANTITY_CRAWL_PRODUCT * 2)):
+#             threads.append(PropagatingThread(
+#                 target=exact_embedding_vector_thread, args=(product_list, thread_num,)))
+#         for thread in threads:
+#             thread.start()
+#         for thread in threads:
+#             thread.join()
+#         # del model
+#         # gc.collect()
 
-    except Exception as e:
-        print("shopee exact_embedding_vector error", e)
-        pass
+#     except Exception as e:
+#         print("shopee exact_embedding_vector error", e)
+#         pass
 
 
-def exact_embedding_vector_thread(product_list, thread_num):
-    for i in range(len(product_list)):
-        if i % (THREAD_QUANTITY_CRAWL_PRODUCT * 2) == thread_num:
-            product = product_list[i]
-            for image in product.images.all():
-                if image.embedding_vector == []:
-                    try:
-                        image.embedding_vector = exact_embedding_from_link(
-                            image.link)
-                        # print('image calculated')
-                        image.save()
-                    except:
-                        # print("image deleted")
-                        image.delete()
+# def exact_embedding_vector_thread(product_list, thread_num):
+#     for i in range(len(product_list)):
+#         if i % (THREAD_QUANTITY_CRAWL_PRODUCT * 2) == thread_num:
+#             product = product_list[i]
+#             for image in product.images.all():
+#                 if image.embedding_vector == []:
+#                     try:
+#                         image.embedding_vector = exact_embedding_from_link(
+#                             image.link)
+#                         # print('image calculated')
+#                         image.save()
+#                     except:
+#                         # print("image deleted")
+#                         image.delete()
 
 
 def find_categories(category_ids=['']):
@@ -458,3 +458,39 @@ def exact_image_embedding_from_zip(file):
             'image_path': str(path),
             'embedding_vector':  embedding_vector})
     return anchor_images
+
+def get_need_update_product():
+    result = {}
+
+    products = Product.objects.filter(source_description__startswith="Shopee", crawled__in=[True])
+
+    total_thread = 4
+    threads = []
+
+    products = np.array_split(products, total_thread)
+    print(len(products))
+    for thread_num in range(total_thread):
+        temp_list = []
+        result[f'{thread_num}'] = temp_list
+        threads.append(PropagatingThread(target=get_need_update_product_thread, args=(products[thread_num], temp_list,)))
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+    
+    all_result = []
+    for key in result:
+        print(key)
+        all_result.extend(result[key])
+
+    return all_result
+
+def get_need_update_product_thread(products, temp_list):
+    print(len(products))
+    for product in products:
+        # print(product.id, len(product.images.all()))
+        if len(product.images.all()) == 0 or check_update_expire(product):
+            # print(product.id, len(product.images.all()))
+            temp_list.append(product)
+    print(len(temp_list))
+    return temp_list

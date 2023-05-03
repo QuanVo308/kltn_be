@@ -32,21 +32,13 @@ class ProductView(viewsets.GenericViewSet,
         """
         # auto_update_new_data()
         # crawl_update_shopee_categories()
+        auto_update_old_data()
 
-        product_list = []
-        products = Product.objects.filter(
-            source_description__startswith="Shopee", crawled__in=[True])
-
-        # product_list = [
-        #     product for product in products if product.image_count == 0]
-
-        for product in products:
-            # print(product.id, len(product.images.all()))
-            if len(product.images.all()) == 0 or check_update_expire(product):
-                # print(product.id)
-                product_list.append(product)
-        print(len(product_list))
-
+        # start = timezone.now()
+        # product_list = get_need_update_product()
+        # print(len(product_list))
+        # end = timezone.now()
+        # print(end - start)
         return Response('test')
     
     @action(detail=False, methods=['get', 'post'])
@@ -240,10 +232,10 @@ class ProductView(viewsets.GenericViewSet,
         serializer.save()
         return Response('ok')
 
-    @action(detail=False, methods=['get'])
-    def image_exaction_update(self, request):
-        update_exact_image_multithread()           
-        return Response('update image')
+    # @action(detail=False, methods=['get'])
+    # def image_exaction_update(self, request):
+    #     update_exact_image_multithread()           
+    #     return Response('update image')
 
     @action(detail=False, methods=['get'])
     def image_exaction_update_rembg(self, request):

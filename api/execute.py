@@ -49,7 +49,7 @@ def test():
     start = timezone.now()
     runtime = timezone.now() - test_process.updated_at
 
-    if test_process.running == True and runtime.seconds/3600 < 50:
+    if test_process.running == True and runtime.total_seconds()/3600 < 50:
         print(f'other process {test_process.name} is running')
         return
     
@@ -61,9 +61,9 @@ def test():
 
             
         print(f'current runtime: {timezone.now() - start}')
-        print(f'current updateat: {runtime} and hour {runtime.seconds/3600} and day {runtime.days} \n')
+        print(f'current updateat: {runtime} and hour {runtime.total_seconds()/3600} and day {runtime.days} \n')
 
-        if runtime.seconds/3600 >= 48:
+        if runtime.total_seconds()/3600 >= 48:
             run = False
             break
 
@@ -78,9 +78,9 @@ def auto_update_new_data():
     start = timezone.now()
     runtime = timezone.now() - update_new_process.updated_at
 
-    if update_new_process.running == True and runtime.seconds/3600 < AUTO_UPDATE_NEW_TIMEOUT_H + 2:
+    if update_new_process.running == True and runtime.total_seconds()/3600 < AUTO_UPDATE_NEW_TIMEOUT_H + 2:
         print(f'other process {update_new_process.name} is running')
-        # return
+        return
     
     update_new_process.running = True
     update_new_process.save()
@@ -88,7 +88,7 @@ def auto_update_new_data():
     while True:
         runtime = timezone.now() - update_new_process.updated_at
 
-        if runtime.seconds/3600 >= AUTO_UPDATE_NEW_TIMEOUT_H:
+        if runtime.total_seconds()/3600 >= AUTO_UPDATE_NEW_TIMEOUT_H:
             break
 
         try:
@@ -116,9 +116,9 @@ def auto_update_old_data():
     start = timezone.now()
     runtime = timezone.now() - update_old_process.updated_at
 
-    if update_old_process.running == True and runtime.seconds/3600 < AUTO_UPDATE_OLD_TIMEOUT_H + 2:
+    if update_old_process.running == True and runtime.total_seconds()/3600 < AUTO_UPDATE_OLD_TIMEOUT_H + 2:
         print(f'other process {update_old_process.name} is running')
-        # return
+        return
     
     update_old_process.running = True
     update_old_process.save()
@@ -126,7 +126,7 @@ def auto_update_old_data():
     while True:
         runtime = timezone.now() - update_old_process.updated_at
 
-        if runtime.seconds/3600 >= AUTO_UPDATE_OLD_TIMEOUT_H:
+        if runtime.total_seconds()/3600 >= AUTO_UPDATE_OLD_TIMEOUT_H:
             break
 
         try:
@@ -136,7 +136,7 @@ def auto_update_old_data():
         except Exception as e:
             print(f'auto update new error: {e}')
 
-        time.sleep(3600)
+        time.sleep(3 * 3600)
         # for test only
         # break
 

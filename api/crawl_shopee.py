@@ -152,39 +152,37 @@ def shopee_recrawl_product():
 
 
 def shopee_autorecrawl_product(update_old_process):
-    product_list = []
-    products = Product.objects.annotate(image_count=Count("images")).filter(
-        source_description__startswith="Shopee", crawled__in=[True])
-
-    # product_list = [
-    #     product for product in products if product.image_count == 0]
-
-    for product in products:
-        if product.image_count == 0 or check_update_expire(product):
-            product_list.append(product)
+    product_list = get_need_update_product()
 
     if len(product_list) > 0:
         for _ in range(2):
             print(len(product_list))
             n = 0
-            while True:
+
+            product_list = np.array_split(product_list, len(product_list)/60)
+            for i in range(len(product_list)):
+
+                runtime = timezone.now() - update_old_process.updated_at
+                if runtime.total_seconds()/3600 >= AUTO_UPDATE_OLD_TIMEOUT_H:
+                    print(f'background process {update_old_process.name} is timeout')
+                    return
+
                 crawl_shopee_image_multithread(
-                    product_list[n:min(len(product_list), n + 60)], recrawl=True, try_time=0)
+                    product_list[i], recrawl=True, try_time=0)
                 n += 60
                 if n >= len(product_list):
                     break
-            products = Product.objects.annotate(image_count=Count("images")).filter(
-                source_description__startswith="Shopee", crawled__in=[True])
-            product_list = [
-                product for product in products if product.image_count == 0]
+            
+            product_list = get_need_update_product()
+            
             if len(product_list) == 0:
                 break
-    products = Product.objects.annotate(image_count=Count("images")).filter(
-        source_description__startswith="Shopee", crawled__in=[True])
-    product_list = [
-        product for product in products if product.image_count == 0]
-    for product in product_list:
-        product.delete()
+
+    
+        product_list = get_need_update_product()
+                
+        for product in product_list:
+            product.delete()
 
 
 def crawl_shopee_all():
@@ -308,7 +306,7 @@ def autocrawl_shopee_page_multithread(sources, thread_num, background_process):
 
             runtime = timezone.now() - background_process.updated_at
             print(thread_num, runtime)
-            if runtime.seconds/3600 >= AUTO_UPDATE_NEW_TIMEOUT_H:
+            if runtime.total_seconds()/3600 >= AUTO_UPDATE_NEW_TIMEOUT_H:
                 print(f'background process {background_process.name} is timeout')
                 break
 
