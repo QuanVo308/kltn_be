@@ -422,7 +422,7 @@ def crawl_shopee_image(product, driver):
                             i.product = product
                             # i.embedding_vector = exact_embedding_from_link(
                             #     i.link)
-                            image.embedding_vector_temp = exact_embedding_from_link(
+                            i.embedding_vector_temp = exact_embedding_from_link(
                                 i.link)
                             i.embedding_vector = exact_embedding_from_link_rembg(
                                 i.link, session)
@@ -487,6 +487,8 @@ def crawl_shopee_image(product, driver):
             product.save()
         except Exception as e:
             print(f"get category error product {product.id}: {e}")
+    
+
     product.save()
 
 

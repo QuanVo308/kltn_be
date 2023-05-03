@@ -126,6 +126,8 @@ while try_times < 10:
                             'div', attrs={"class": "A4dsoy"})['style']
                         image_link = re.findall(
                             "url\(\"(.+)\"\)", image_link)[0]
+                        
+                        print(image_link)
 
                         
                     except Exception as e:
