@@ -364,7 +364,10 @@ def crawl_shopee_image(product, driver):
         except Exception as e:
             # print(e)
             try_times += 1
-
+        try:
+            shopee_login(driver)
+        except:
+            pass
         try_times += 1
         content = driver.page_source
         soup = BeautifulSoup(content, "html.parser")
@@ -451,10 +454,6 @@ def crawl_shopee_image(product, driver):
                 if i == 1:
                     next_button = False
                 time.sleep(1)
-                try:
-                    shopee_login(driver)
-                except:
-                    pass
                 print(f"shopee click next error {i}")
 
                 pass
