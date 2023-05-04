@@ -88,7 +88,8 @@ def auto_update_new_data():
     update_new_process.running = True
     update_new_process.save()
 
-    while True:
+    count = 0
+    while count < 3:
         runtime = timezone.now() - update_new_process.updated_at
 
         if runtime.total_seconds()/3600 >= AUTO_UPDATE_NEW_TIMEOUT_H:
@@ -108,6 +109,7 @@ def auto_update_new_data():
             print(f'auto update new error: {e}')
 
         time.sleep(3600)
+        count += 1
         # for test only
         # break
 
@@ -129,7 +131,8 @@ def auto_update_old_data():
     update_old_process.running = True
     update_old_process.save()
 
-    while True:
+    count = 0
+    while count < 3:
         runtime = timezone.now() - update_old_process.updated_at
 
         if runtime.total_seconds()/3600 >= AUTO_UPDATE_OLD_TIMEOUT_H:
@@ -142,7 +145,8 @@ def auto_update_old_data():
         except Exception as e:
             print(f'auto update old error: {e}')
 
-        time.sleep(3 * 3600)
+        time.sleep(2 * 3600)
+        count += 1
         # for test only
         # break
 
@@ -163,7 +167,7 @@ def auto_update_old_data():
 # scheduler.add_job(test, 'interval', days=1)
 
 # """auto update new data"""
-# scheduler.add_job(auto_update_new_data, 'interval', hours=12)
+# scheduler.add_job(auto_update_new_data, 'interval', hours=24)
 
 # """auto update old data"""
 # scheduler.add_job(auto_update_old_data, 'interval', seconds=4, end_date=timezone.now()+datetime.timedelta(0, 6))
