@@ -116,6 +116,7 @@ def auto_update_new_data():
 
     update_new_process.running = False
     update_new_process.save()
+    print('end update new data')
 
 
 def auto_update_old_data():
@@ -153,6 +154,7 @@ def auto_update_old_data():
 
     update_old_process.running = False
     update_old_process.save()
+    print('end update old data')
 
 
 # """get random product"""

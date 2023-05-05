@@ -493,7 +493,11 @@ def get_need_update_product():
     for thread in threads:
         thread.join()
 
+    not_crawled_products = Product.objects.filter(
+        source_description__startswith="Shopee", crawled__in=[False])
+    
     all_result = []
+    all_result.extend(list(not_crawled_products))
     for key in result:
         print(key)
         all_result.extend(result[key])
