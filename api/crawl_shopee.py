@@ -223,6 +223,7 @@ def autocrawl_shopee_all(update_new_process):
     crawl everything of shopee source, product, image with multithread
     """
 
+    print('start autocrawl shopee new')
     try_time = 3
     # try again if any error occur
     while try_time >= 0:
@@ -594,7 +595,7 @@ def crawl_shopee_page(source, driver):
     same = 0
     product_list = []
     try:
-        print("crawling", link)
+        print("crawling", unidecode(link))
         driver.get(link)
 
     except Exception as e_481:
@@ -679,7 +680,7 @@ def crawl_shopee_page(source, driver):
                 (By.CSS_SELECTOR, ".shopee-icon-button.shopee-icon-button--right")))
             next_page.click()
         except Exception as e_533:
-            print(f'shopee change page error {link}', e_533)
+            print(f'shopee change page error {unidecode(link)}', e_533)
             pass
     source.crawled = True
     source.save()

@@ -100,8 +100,9 @@ def auto_update_new_data():
             source_data = SourceData.objects.filter(
                 platform='Shopee', crawled__in=[False])
 
-            # print(len(source_data))
+            print("uncrawled source data", len(source_data))
             if len(source_data) == 0:
+                print("recrawl all new source data")
                 crawl_shopee_categories()
 
             autocrawl_shopee_all(update_new_process)
@@ -167,6 +168,7 @@ def auto_update_old_data():
 # scheduler.add_job(test, 'interval', days=1)
 
 # """auto update new data"""
+# scheduler.add_job(auto_update_new_data, 'interval', seconds=4, end_date=timezone.now()+datetime.timedelta(0, 6))
 # scheduler.add_job(auto_update_new_data, 'interval', hours=24)
 
 # """auto update old data"""

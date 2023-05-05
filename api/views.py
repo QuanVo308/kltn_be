@@ -34,11 +34,17 @@ class ProductView(viewsets.GenericViewSet,
         # crawl_update_shopee_categories()
         # auto_update_old_data()
 
-        start = timezone.now()
-        product_list = get_need_update_product()
-        print(len(product_list))
-        end = timezone.now()
-        print(end - start)
+        # start = timezone.now()
+        # product_list = get_need_update_product()
+        # print(len(product_list))
+        # end = timezone.now()
+        # print(end - start)
+
+        source_data = SourceData.objects.filter(
+                platform='Shopee', crawled__in=[False])
+        for source in source_data:
+            source.crawled = True
+            source.save()
         return Response('test')
 
     @action(detail=False, methods=['get', 'post'])

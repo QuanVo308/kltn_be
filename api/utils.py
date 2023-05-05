@@ -422,7 +422,13 @@ def get_product_from_category_ids(category_ids):
     for category in categories:
         category_queries |= Q(category=category)
     products = Product.objects.filter(category_queries)
-    return products
+
+    ps = []
+    for product in products:
+        if len(product.images.all()) != 0:
+            ps.append(product)
+    print(len(ps))
+    return ps
 
 
 def exact_image_embedding_from_zip(file):
