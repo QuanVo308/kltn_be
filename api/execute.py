@@ -157,23 +157,23 @@ def auto_update_old_data():
     print('end update old data')
 
 
-# """get random product"""
+"""get random product"""
 # scheduler.add_job(get_random_product, 'interval', minutes=10)
 # scheduler.add_job(get_random_product, 'interval', seconds=2,
 #                   end_date=timezone.now()+datetime.timedelta(0, 3))
 
-# """cleanup temp folder"""
+"""cleanup temp folder"""
 # scheduler.add_job(cleanup_temp_folder, 'interval', minutes=10)
 
-# """test auto update data"""
+"""test auto update data"""
 # scheduler.add_job(test, 'interval', seconds=2, end_date=timezone.now()+datetime.timedelta(0, 3))
 # scheduler.add_job(test, 'interval', days=1)
 
-# """auto update new data"""
+"""auto update new data"""
 # scheduler.add_job(auto_update_new_data, 'interval', seconds=4, end_date=timezone.now()+datetime.timedelta(0, 6))
 # scheduler.add_job(auto_update_new_data, 'interval', hours=24)
 
-# """auto update old data"""
+"""auto update old data"""
 # scheduler.add_job(auto_update_old_data, 'interval', seconds=4, end_date=timezone.now()+datetime.timedelta(0, 6))
 # scheduler.add_job(auto_update_old_data, 'interval', hours=24)
 

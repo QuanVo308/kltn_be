@@ -49,7 +49,7 @@ class ProductView(viewsets.GenericViewSet,
 
     @action(detail=False, methods=['get', 'post'])
     def temp_exact_image(self, request):
-
+        """convert or recalculate temp embedding"""
         for _ in range(2):
             print('loading image')
             products = list(Product.objects.filter(rembg__in=[True]))
@@ -72,11 +72,13 @@ class ProductView(viewsets.GenericViewSet,
 
     @action(detail=False, methods=['get', 'post'])
     def update_category_raw_name(self, request):
+        """recrawl raw name of category"""
         update_category_raw_name_multithread()
         return Response('test')
 
     @action(detail=False, methods=['get', 'post'])
     def cleanup_temp(self, request):
+        """clean up temp folder"""
         base_dir = pathlib.Path('temp')
         for path in base_dir.glob("*"):
             create_time = time.time() - os.path.getctime(path)
@@ -95,6 +97,7 @@ class ProductView(viewsets.GenericViewSet,
 
     @action(detail=False, methods=['get', 'post'])
     def upload_zip(self, request):
+        """find similar product by upload image"""
         file = request.FILES.get('file', None)
         category_ids = [int(category)
                         for category in request.data['categories'].split(',')]
@@ -114,6 +117,7 @@ class ProductView(viewsets.GenericViewSet,
 
     @action(detail=False, methods=['get', 'post'])
     def re_crawl_category(self, request):
+        """update "khac" category"""
         for _ in range(3):
             products = Product.objects.filter(
                 Q(category__name='khac') | Q(category=None))
@@ -130,12 +134,14 @@ class ProductView(viewsets.GenericViewSet,
 
     @action(detail=False, methods=['get', 'post', 'delete'])
     def delete_product_fail_category(self, request):
+        """delete with not valid category"""
         products = Product.objects.filter(
             Q(category__name='khac') | Q(category=None)).delete()
         return Response('delete_product_fail_category')
 
     @action(detail=False, methods=['get', 'post'])
     def count_no_image(self, request):
+        """count products which has no image"""
         product_list = []
         products = Product.objects.annotate(image_count=Count("images")).filter(
             source_description__startswith="Shopee", crawled__in=[True])
@@ -146,6 +152,7 @@ class ProductView(viewsets.GenericViewSet,
 
     @action(detail=False, methods=['get', 'post'])
     def test_product_exist(self, request):
+        """test if product is existing"""
         print(unquote(request.data['link']).split('?')[0])
         print(unidecode(request.data['name']))
         query = Q(link__icontains=unquote(request.data['link']).split('?')[0])
@@ -183,6 +190,7 @@ class ProductView(viewsets.GenericViewSet,
 
     @action(detail=False, methods=['get', 'post'])
     def find_product(self, request):
+        """find and filter product"""
         category_ids = request.data.get('categories', [])
         search = request.data.get('name', '')
         # page = request.data.get('page', 1)
@@ -216,6 +224,7 @@ class ProductView(viewsets.GenericViewSet,
 
     @action(detail=True, methods=['get', 'post'])
     def get_similar_product(self, request, pk):
+        """find similar product by chosen image"""
         # print(request.data['categories'])
         print(request.data['images'])
         anchor_product = self.get_object()
@@ -231,6 +240,7 @@ class ProductView(viewsets.GenericViewSet,
 
     @action(detail=False, methods=['get', 'post'])
     def add_data_source(self, request):
+        """test add data source"""
         request.data._mutable = True
         # request.data["key_words"] = json.loads(request.data["key_words"])
         serializer = SourceDataSerializer(data=request.data)
@@ -245,7 +255,7 @@ class ProductView(viewsets.GenericViewSet,
 
     @action(detail=False, methods=['get'])
     def image_exaction_update_rembg(self, request):
-
+        """update image with rembg embedding"""
         for _ in range(2):
             print('loading image')
             products = list(Product.objects.filter(rembg__in=[False]))
@@ -267,6 +277,7 @@ class ProductView(viewsets.GenericViewSet,
 
     @action(detail=False, methods=['get'])
     def product_update(self, request):
+        """update uncrawled product"""
         product_list = []
         # Product.objects.filter(source_description__startswith="Shopee", crawled__in=[False])
         products = Product.objects.filter(
@@ -283,6 +294,7 @@ class ProductView(viewsets.GenericViewSet,
 
     @action(detail=False, methods=['get'], url_path="crawl_all")
     def crawl_all_data(self, request):
+        """crawl everything"""
         start = timezone.now()
 
         # craw_lazada_all()
@@ -297,6 +309,7 @@ class ProductView(viewsets.GenericViewSet,
 
     @action(detail=False, methods=['get'], url_path="crawl_specified")
     def crawl_all_data_specified(self, request):
+        """crawl from chosen data source"""
         start = timezone.now()
         source_ids = request.data['source']
 
@@ -318,6 +331,7 @@ class ProductView(viewsets.GenericViewSet,
 
     @action(detail=False, methods=['get'])
     def crawl_data_source(self, request):
+        """crawl data source"""
         start = timezone.now()
         # crawl_lazada_categories()
         crawl_shopee_categories()
